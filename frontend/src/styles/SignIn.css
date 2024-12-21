@@ -1,0 +1,33 @@
+.sign-in {
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f5f5f5; /* Optional: Background color similar to the MUI template */
+}
+
+.sign-in-container{
+    display: flex;
+    flex-direction: column;
+    align-self: center;
+    width: 100%;
+    max-width: 350px; /* Slightly wider */
+    padding: 40px; /* Increase padding for more height */
+    gap: 20px; /* Adjust spacing between elements */
+    margin: auto;
+    background-color: #fff; /* White background for the container */
+    box-shadow: 0px 5px 15px hsla(220, 30%, 5%, 0.05), 
+                0px 15px 35px -5px hsla(220, 25%, 10%, 0.05);
+    border-radius: 8px; /* Rounded corners */
+}
+
+.sign-in-container::before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    background-image: radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%));
+    background-repeat: no-repeat;
+  }

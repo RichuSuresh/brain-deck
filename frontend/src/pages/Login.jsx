@@ -9,56 +9,51 @@ import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { Card } from "@mui/material";
+import "../styles/SignIn.css";
+import { doSignInWithEmailAndPassword, doSignInWithGoogle, generateFirebaseAuthErrorMessage } from "../../auth";
 
 function Login() {
     const [emailError, setEmailError] = useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = useState('');
     const [passwordError, setPasswordError] = useState(false);
     const [passwordErrorMessage, setPasswordErrorMessage] = useState('');
+    const [googleError, setGoogleError] = useState(false);
+    const [googleErrorMessage, setGoogleErrorMessage] = useState('');
     const [open, setOpen] = useState(false);
 
     const handleSubmit = (event) => {
-        if (emailError || passwordError) {
-            event.preventDefault();
-            return;
-        }
+        event.preventDefault();
+
         const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
+        doSignInWithEmailAndPassword(data.get('email'), data.get('password')).catch((error) => {
+            const errorResult = generateFirebaseAuthErrorMessage(error);
+
+            if (errorResult.field === 'email') {
+                setEmailError(true);
+                setEmailErrorMessage(errorResult.message);
+            } else {
+                setEmailError(false);
+                setEmailErrorMessage('');
+            }
+            
+            if (errorResult.field === 'password') {
+                setPasswordError(true);
+                setPasswordErrorMessage(errorResult.message);
+            } else {
+                setPasswordError(false);
+                setPasswordErrorMessage('');
+            }
         });
     };
 
-    const validateInputs = () => {
-        const email = document.getElementById('email');
-        const password = document.getElementById('password');
-
-        let isValid = true;
-
-        if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
-            setEmailError(true);
-            setEmailErrorMessage('Please enter a valid email address.');
-            isValid = false;
-        } else {
-            setEmailError(false);
-            setEmailErrorMessage('');
-        }
-
-        if (!password.value) {
-            setPasswordError(true);
-            setPasswordErrorMessage('Please enter a valid password.');
-            isValid = false;
-        } else {
-            setPasswordError(false);
-            setPasswordErrorMessage('');
-        }
-
-        return isValid;
-    };
+    const googleSignIn = (event) => {
+        event.preventDefault();
+        doSignInWithGoogle();
+    }
 
     return (
-        <div>
-            <Card variant="outlined">
+        <div className="sign-in">
+            <Card direction="column" justifyContent="space-between" className="sign-in-container">
                 <Typography
                     component="h1"
                     variant="h4"
@@ -113,41 +108,35 @@ function Login() {
                     </FormControl>
                     {/* <ForgotPassword open={open} handleClose={handleClose} /> */}
                     <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    onClick={validateInputs}
-                    >
-                    Sign in
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        // onClick={validateInputs}
+                        >
+                        Sign in
                     </Button>
                     <Link
-                    component="button"
-                    type="button"
-                    // onClick={handleClickOpen}
-                    variant="body2"
-                    sx={{ alignSelf: 'center' }}
-                    >
-                    Forgot your password?
+                        component="button"
+                        type="button"
+                        // onClick={handleClickOpen}
+                        variant="body2"
+                        sx={{ alignSelf: 'center' }}
+                        >
+                        Forgot your password?
                     </Link>
                 </Box>
                 <Divider>or</Divider>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {/* <Button
+                    {<Button
                     fullWidth
                     variant="outlined"
-                    onClick={() => alert('Sign in with Google')}
-                    startIcon={<GoogleIcon />}
+                    onClick={(event) => googleSignIn(event)}
+                    error={googleError}
+                    helperText={googleErrorMessage}
                     >
                     Sign in with Google
                     </Button>
-                    <Button
-                    fullWidth
-                    variant="outlined"
-                    onClick={() => alert('Sign in with Facebook')}
-                    startIcon={<FacebookIcon />}
-                    >
-                    Sign in with Facebook
-                    </Button> */}
+                    }
                     <Typography sx={{ textAlign: 'center' }}>
                     Don&apos;t have an account?{' '}
                     <Link
@@ -159,6 +148,7 @@ function Login() {
                     </Link>
                     </Typography>
                 </Box>
+            
             </Card>
         </div>
     );
