@@ -31,6 +31,8 @@ export const generateFirebaseAuthErrorMessage = (error) => {
             return {message: "Please enter a valid password", field: "password"}
         case "auth/missing-password":
             return {message: "Please enter a valid password", field: "password"}
+        case "auth/weak-password":
+            return {message: "Please enter a password that is at least 6 characters long", field: "password"}
         default:
             return {message: "Something went wrong, please try again", field: "email"}
     }

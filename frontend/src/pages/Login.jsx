@@ -11,6 +11,8 @@ import Typography from '@mui/material/Typography';
 import { Card } from "@mui/material";
 import "../styles/SignIn.css";
 import { doSignInWithEmailAndPassword, doSignInWithGoogle, generateFirebaseAuthErrorMessage } from "../../auth";
+import { useAuth } from "../components/AuthProvider";
+import { Navigate } from "react-router-dom";
 
 function Login() {
     const [emailError, setEmailError] = useState(false);
@@ -20,6 +22,7 @@ function Login() {
     const [googleError, setGoogleError] = useState(false);
     const [googleErrorMessage, setGoogleErrorMessage] = useState('');
     const [open, setOpen] = useState(false);
+    const { currentUser } = useAuth();
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -49,6 +52,10 @@ function Login() {
     const googleSignIn = (event) => {
         event.preventDefault();
         doSignInWithGoogle();
+    }
+
+    if(currentUser) {
+        return <Navigate to="/" />;
     }
 
     return (
