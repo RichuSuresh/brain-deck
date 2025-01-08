@@ -60,7 +60,7 @@ function Login() {
 
     return (
         <div className="sign-in">
-            <Card direction="column" justifyContent="space-between" className="sign-in-container">
+            <Card direction="column" justifycontent="space-between" className="sign-in-container">
                 <Typography
                     component="h1"
                     variant="h4"
@@ -82,8 +82,8 @@ function Login() {
                     <FormControl>
                         <FormLabel htmlFor="email">Email</FormLabel>
                         <TextField
-                            error={emailError}
-                            helperText={emailErrorMessage}
+                            error={emailError ? emailError : undefined}
+                            helpertext={emailErrorMessage}
                             id="email"
                             type="email"
                             name="email"
@@ -99,8 +99,8 @@ function Login() {
                     <FormControl>
                         <FormLabel htmlFor="password">Password</FormLabel>
                         <TextField
-                            error={passwordError}
-                            helperText={passwordErrorMessage}
+                            error={passwordError ? passwordError : undefined}
+                            helpertext={passwordErrorMessage}
                             name="password"
                             placeholder="••••••"
                             type="password"
@@ -138,8 +138,8 @@ function Login() {
                     fullWidth
                     variant="outlined"
                     onClick={(event) => googleSignIn(event)}
-                    error={googleError}
-                    helperText={googleErrorMessage}
+                    error={googleError ? googleError : undefined}
+                    helpertext={googleErrorMessage}
                     >
                     Sign in with Google
                     </Button>

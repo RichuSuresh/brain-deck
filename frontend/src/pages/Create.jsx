@@ -3,7 +3,7 @@ import { useAuth } from "../components/AuthProvider";
 import Layout from "../components/Layout";
 import { Box, Toolbar, Typography } from "@mui/material";
 
-function Home() {
+function Create() {
     const { currentUser } = useAuth()
 
     return (
@@ -11,12 +11,11 @@ function Home() {
             <Layout />
             <Box component="main" sx={{ p: 5}}>
                 <Toolbar />
-                <Typography variant="h4">Home</Typography>
-                <h2>Hello {currentUser.email}</h2>
+                <Typography variant="h4">Create a new flashcard set</Typography>
             </Box>
         </Box>
 
     );
 }
 
-export default Home
+export default Create
