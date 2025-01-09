@@ -1,2 +1,2 @@
 # brain-deck
-A web app for generating creating flashcards or generating them using AI
+A web app for creating flashcards or generating them using AI
