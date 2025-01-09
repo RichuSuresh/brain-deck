@@ -7,14 +7,10 @@ function Home() {
     const { currentUser } = useAuth()
 
     return (
-        <Box sx={{ display: 'flex' }}>
-            <Layout />
-            <Box component="main" sx={{ p: 5}}>
-                <Toolbar />
-                <Typography variant="h4">Home</Typography>
-                <h2>Hello {currentUser.email}</h2>
-            </Box>
-        </Box>
+        <div>
+            <Typography variant="h4">Home</Typography>
+            <h2>Hello {currentUser.email}</h2>
+        </div>
 
     );
 }

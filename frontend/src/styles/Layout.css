@@ -1,0 +1,27 @@
+.layout {
+    background-color: rgb(255, 255, 255);
+   
+    display: flex;
+}
+
+.content {
+    width: 60%;
+    /* padding-top: 80px; */
+    /* padding-left: 50px; */
+}
+
+.create-page-header {
+    display: flex;
+    width: 100%;
+    background-color: white;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 90px;
+    overflow: hidden;
+    z-index: 1;
+    
+}
+
+.flashcard-list{
+    width: 100%;
+}

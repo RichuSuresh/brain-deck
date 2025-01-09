@@ -3,8 +3,9 @@ import { useState} from "react";
 import { Button, Toolbar, AppBar, Typography, Box, Link, IconButton, Avatar, Tooltip, Menu, MenuItem, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { doSignOut } from "../../auth";
 import { LibraryAdd, Home } from "@mui/icons-material";
+import "../styles/Layout.css";
 
-function Layout() {
+export default function Layout({ children }) {
     const [anchorElUser, setAnchorElUser] = useState(null);
     
     const handleOpenUserMenu = (event) => {
@@ -14,7 +15,7 @@ function Layout() {
     const drawerWidth = 300
 
     return (
-        <div>
+        <div className="layout">
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, boxShadow: 0 }}>
                 <Toolbar>
                     <Typography variant="h4"
@@ -22,16 +23,15 @@ function Layout() {
                     >
                         Brain Deck
                     </Typography>
-                    <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
+                    <Box sx={{ flexGrow: 1, display: { md: 'flex' } }}>
                         <Button
                             href="/"
-                            size="large"
                             color="inherit"
                         >
                             Home
                         </Button>
                     </Box>
-                    <Box sx={{ flexGrow: 0, display: { xs: 'none', md: 'flex' } }}>
+                    <Box sx={{ flexGrow: 0, display: {md: 'flex' } }}>
                         <Tooltip title="Open settings">
                             <IconButton  onClick={handleOpenUserMenu} sx={{ p: 0 }}>
                                 <Avatar />
@@ -47,19 +47,19 @@ function Layout() {
                     </Box>
                 </Toolbar>
             </AppBar>
-
+            
             <Drawer
                 sx={{
                     width: drawerWidth,
                     flexShrink: 0,
-                    paddingRight: 10,
+                    marginRight: 5,
                     [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', boxShadow: 9, },
                 }}
                 variant="permanent"
             >
                 <Toolbar />
                 <List>
-                    <ListItem key="my-flashcards" disablePadding>
+                    <ListItem key="home" disablePadding>
                         <ListItemButton href="/">
                             <ListItemIcon>
                                 <Home />
@@ -77,8 +77,13 @@ function Layout() {
                     </ListItem>
                 </List>
             </Drawer>
+            <div className="content">
+                
+                <div>
+                    {children}
+                </div>
+            </div>
         </div>
     );
 }
 
-export default Layout
