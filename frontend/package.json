@@ -19,7 +19,8 @@
     "firebaseui": "^6.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^7.0.1"
+    "react-router-dom": "^7.0.1",
+    "uuid": "^11.0.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.13.0",

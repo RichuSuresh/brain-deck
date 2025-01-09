@@ -6,7 +6,7 @@ import Home from "./pages/Home"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import { AuthProvider } from "./components/AuthProvider"
-import Create from "./pages/Create"
+import CreateDeck from "./pages/CreateDeck"
 import Layout from "./components/Layout"
 
 function Logout() {
@@ -23,7 +23,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
-          <Route path="/create" element={<ProtectedRoute><Layout><Create /></Layout></ProtectedRoute>} />
+          <Route path="/create" element={<ProtectedRoute><Layout><CreateDeck /></Layout></ProtectedRoute>} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<ResgisterAndLogout />} />
