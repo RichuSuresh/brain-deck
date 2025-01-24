@@ -25,6 +25,11 @@ def createDeck(request):
         if serializer.is_valid():
             validData = serializer.validated_data
             print(f"Validated Data: {validData}, User ID: {uid}")
+
+            doc_ref = db.collection('users').document(uid).collection('decks').document()
+            validData['numberOfCards'] = len(validData['flashcards'])
+            doc_ref.set(validData)
+
             return Response({'message': 'Data received successfully', 'data': validData}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
