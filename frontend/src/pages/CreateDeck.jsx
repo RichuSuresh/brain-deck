@@ -5,6 +5,7 @@ import "../styles/Layout.css";
 import { Delete, Add } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
+import api from "../api";
 
 class Flashcard {
     constructor(term = "", definition = "") {
@@ -96,10 +97,9 @@ function CreateDeck() {
 
     }
 
-    const createDeck = () => {
+    const createDeck = async () => {
         const deck = {
             title: title,
-            user_id: currentUser.uid,
             flashcards: cards.map(card => {
                 return {
                     id: card.id,
@@ -108,6 +108,16 @@ function CreateDeck() {
                 }
             })
         }
+        const res = await api.post("/api/create-deck/", deck).then(res => {
+            if (res.status === 200) {
+                alert("Deck created successfully!");
+            } else {
+                alert("Failed to create deck");
+            }
+        }).catch(err => {
+            alert(err);
+        });
+        
         console.log(deck);
     }
 
