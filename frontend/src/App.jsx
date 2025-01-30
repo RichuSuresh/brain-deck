@@ -6,10 +6,9 @@ import Home from "./pages/Home"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import { AuthProvider } from "./components/AuthProvider"
-import CreateDeck from "./pages/CreateDeck"
+import CreateAndEditDeck from "./pages/CreateDeck"
 import Layout from "./components/Layout"
 import Decks from "./pages/GetDecks"
-import EditDeck from "./pages/EditDeck"
 
 function Logout() {
   return <Navigate to="/login" />
@@ -26,9 +25,9 @@ function App() {
         <Routes>
           <Route element={<ProtectedRoute><Layout/></ProtectedRoute>}>
             <Route index element={<Home />} />
-            <Route path="/create" element={<CreateDeck mode="create"/>} />
+            <Route path="/create" element={<CreateAndEditDeck mode="create"/>} />
             <Route path="/decks" element={<Decks />} />
-            <Route path="/edit-deck/:id" element={<CreateDeck mode="edit"/>} />
+            <Route path="/edit-deck/:id" element={<CreateAndEditDeck mode="edit"/>} />
           </Route>
           <Route path="/logout" element={<Logout />} />
           <Route path="/login" element={<Login />} />

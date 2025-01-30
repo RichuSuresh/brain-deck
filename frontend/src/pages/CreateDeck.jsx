@@ -30,7 +30,7 @@ class Flashcard {
     }
 }
 
-function CreateDeck({mode}) {
+function CreateAndEditDeck({mode}) {
     const { currentUser } = useAuth()
     const { id } = useParams()
     const [cards, setCards] = React.useState([new Flashcard()])
@@ -45,6 +45,14 @@ function CreateDeck({mode}) {
     useEffect(() => {
         if(mode === "edit"){
             getDeck()
+        }
+        if(mode === "create"){
+            setCards([new Flashcard()])
+            setTitle("")
+            setTitleError(false)
+            setTitleErrorMessage("")
+            setGeneralErrorMessage("")
+            setDisplayGeneralErrorMessage(false)
         }
     }, [mode])
 
@@ -216,4 +224,4 @@ function CreateDeck({mode}) {
     );
 }
 
-export default CreateDeck
+export default CreateAndEditDeck
