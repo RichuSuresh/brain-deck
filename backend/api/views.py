@@ -28,18 +28,44 @@ def createDeck(request):
             doc_ref = db.collection('users').document(uid).collection('decks').document()
             validData['numberOfCards'] = len(validData['flashcards'])
             doc_ref.set(validData)
-
             return Response({'message': 'Data received successfully', 'data': {'deckId': doc_ref.id}}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     except auth.InvalidIdTokenError:
-        return Response({'error': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Invalid authentication token. please try logging in again.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['PATCH', 'DELETE'])
+def editDeck(request, id):
+    auth_header = request.headers['Authorization']
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return Response({'message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
     
+    token = auth_header.split(' ')[1]
+    try:
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token['uid']
+
+        doc_ref = db.collection('users').document(uid).collection('decks').document(id)
+        if request.method == 'PATCH':
+            serializer = DeckSerializer(data=request.data)
+            if serializer.is_valid():
+                validData = serializer.validated_data
+                validData['numberOfCards'] = len(validData['flashcards'])
+                doc_ref.update(validData)
+                return Response({'message': 'Data updated successfully'}, status=status.HTTP_200_OK)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        elif request.method == 'DELETE':
+            doc_ref.delete()
+            return Response({'message': 'Data deleted successfully'}, status=status.HTTP_200_OK)
+    except auth.InvalidIdTokenError:
+        return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
 @api_view(['GET'])
 def getAllDecks(request):
     auth_header = request.headers['Authorization']
     if not auth_header or not auth_header.startswith('Bearer '):
-        return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
     
     token = auth_header.split(' ')[1]
     try:
@@ -51,17 +77,16 @@ def getAllDecks(request):
         for doc in doc_ref:
             deckDict = doc.to_dict()
             decks.append({'id': doc.id, 'title': deckDict['title'], 'numberOfCards': deckDict['numberOfCards']})
-        print(decks)
 
         return Response(decks, status=status.HTTP_200_OK)
     except auth.InvalidIdTokenError:
-        return Response({'error': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['GET'])
 def getDeck(request, id):
     auth_header = request.headers['Authorization']
     if not auth_header or not auth_header.startswith('Bearer '):
-        return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
     
     token = auth_header.split(' ')[1]
     try:
@@ -72,4 +97,4 @@ def getDeck(request, id):
 
         return Response(doc_ref.get().to_dict(), status=status.HTTP_200_OK)
     except auth.InvalidIdTokenError:
-        return Response({'error': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)

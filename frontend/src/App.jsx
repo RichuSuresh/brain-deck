@@ -26,9 +26,9 @@ function App() {
         <Routes>
           <Route element={<ProtectedRoute><Layout/></ProtectedRoute>}>
             <Route index element={<Home />} />
-            <Route path="/create" element={<CreateDeck />} />
+            <Route path="/create" element={<CreateDeck mode="create"/>} />
             <Route path="/decks" element={<Decks />} />
-            <Route path="/edit-deck/:id" element={<EditDeck />} />
+            <Route path="/edit-deck/:id" element={<CreateDeck mode="edit"/>} />
           </Route>
           <Route path="/logout" element={<Logout />} />
           <Route path="/login" element={<Login />} />

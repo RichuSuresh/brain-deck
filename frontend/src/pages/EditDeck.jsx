@@ -59,7 +59,7 @@ function EditDeck() {
 
     const getDeck = async () => {
         const res = await api
-        .get(`/api/decks/edit/${id}/`)
+        .get(`/api/deck/get-deck/${id}/`)
         .then(res => res.data)
         .then(data => {
             setCards(data.flashcards)
@@ -107,12 +107,10 @@ function EditDeck() {
 
         setCards(validatedCards);
 
-        if (!isValid) {
-            return;
-        } else {
+        if (isValid) {
             updateDeck();
         }
-
+        return;
     }
 
     const updateDeck = async () => {
@@ -126,15 +124,15 @@ function EditDeck() {
                 }
             })
         }
-        // const res = await api.post("/api/create-deck/", deck).then(res => {
-        //     if (res.status === 200) {
-        //         alert("Deck created successfully!");
-        //     } else {
-        //         alert("Failed to create deck");
-        //     }
-        // }).catch(err => {
-        //     alert(err);
-        // });
+        const res = await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
+            if (res.status === 200) {
+                alert("Your changes have been saved successfully!");
+            } else {
+                alert("Failed to save changes");
+            }
+        }).catch(err => {
+            alert(err);
+        });
         
         console.log(deck);
     }

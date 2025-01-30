@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, Grid2, TextField, Typography, Button, Card, IconButton } from "@mui/material";
+import { Box, Grid2, TextField, Typography, Button, Card, IconButton, Alert, Collapse, Modal } from "@mui/material";
 import "../styles/Layout.css";
-import { Delete, Add } from "@mui/icons-material";
+import { Delete, Add, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 class Flashcard {
     constructor(term = "", definition = "") {
@@ -30,14 +30,23 @@ class Flashcard {
     }
 }
 
-function CreateDeck() {
+function CreateDeck({mode}) {
     const { currentUser } = useAuth()
+    const { id } = useParams()
     const [cards, setCards] = React.useState([new Flashcard()])
     const [title, setTitle] = React.useState("")
     const [titleError, setTitleError] = React.useState(false)
     const [titleErrorMessage, setTitleErrorMessage] = React.useState('')
+    const [generalErrorMessage, setGeneralErrorMessage] = React.useState('')
+    const [displayGeneralErrorMessage, setDisplayGeneralErrorMessage] = React.useState(false)
 
     let navigate = useNavigate();
+
+    useEffect(() => {
+        if(mode === "edit"){
+            getDeck()
+        }
+    }, [mode])
 
     const deleteCard = (id) => {
         setCards(
@@ -54,10 +63,36 @@ function CreateDeck() {
         ]);
     }
 
+    const getDeck = async () => {
+        const res = await api
+        .get(`/api/deck/get-deck/${id}/`)
+        .then(res => res.data)
+        .then(data => {
+            setCards(data.flashcards)
+            var cards = []
+            data.flashcards.forEach(card => {
+                cards.push(new Flashcard(card.term, card.definition))
+            });
+            setCards(cards)
+            setTitle(data.title)
+        })
+        .catch(err => {
+            alert(err);
+        });
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        var isValid = cards.length > 0;
+        var isValid = true;
+        if(cards.length === 0) {
+            setDisplayGeneralErrorMessage(true);
+            setGeneralErrorMessage("Please add at least one flashcard");
+            isValid = false;
+        } else {
+            setDisplayGeneralErrorMessage(false);
+            setGeneralErrorMessage("");
+        }
         if(title === "") {
             setTitleError(true);
             setTitleErrorMessage("Title cannot be empty");
@@ -86,12 +121,40 @@ function CreateDeck() {
 
         setCards(validatedCards);
 
-        if (!isValid) {
-            return;
-        } else {
+        if (isValid) {
             createDeck();
         }
+        return;
 
+    }
+
+    const handleErrorResponse = (err) => {
+        setDisplayGeneralErrorMessage(true);
+        var errorMessage = "Some errors occurred whilst processing your request... ";
+        console.log(err);
+        if (err.status === 400) {
+            if(err.response.data.title) {
+                errorMessage += "\n\nTitle: " + err.response.data.title[0];
+            }
+            if(err.response.data.flashcards) {      
+                for (const [key, value] of Object.entries(err.response.data.flashcards)) {
+                    if(value.term || value.definition) {
+                        errorMessage += "\n\nFlashcard " + (parseInt(key) + 1) + ":";
+                    } else {
+                        errorMessage += "\n\nFlashcards: " + value;
+                    }
+                    if(value.term) {
+                        errorMessage += "\nTerm: " + value.term[0];
+                    }
+                    if(value.definition) {
+                        errorMessage += "\nDefinition: " + value.definition[0];
+                    }
+                }
+            }
+        } else {
+            errorMessage += "\n\n" + err.response.data.message;
+        }
+        setGeneralErrorMessage(errorMessage);
     }
 
     const createDeck = async () => {
@@ -105,29 +168,39 @@ function CreateDeck() {
                 }
             })
         }
-        const res = await api.post("/api/create-deck/", deck).then(res => {
-            if (res.status === 200) {
-                alert("Deck created successfully!");
+
+        if(mode === "create") {
+            const res = await api.post("/api/deck/create-deck/", deck).then(res => {
                 navigate(`/edit-deck/${res.data.data.deckId}`);
-            } else {
-                alert("Failed to create deck");
-            }
-        }).catch(err => {
-            alert(err);
-        });
+            }).catch(err => {
+                handleErrorResponse(err);
+            });
+        } else if (mode === "edit") {
+            const res = await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
+                if (res.status === 200) {
+                    alert("Your changes have been saved successfully!");
+                } else {
+                    alert("Failed to save changes");
+                }
+            }).catch(err => {
+                handleErrorResponse(err);
+            });
+        }
     }
 
     return (
         <div>
             <div className="page-header">
-                <Typography variant="h4">Create a new Deck</Typography>
+                <Typography variant="h4">{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', gap:2}}>
-                    <Button variant="outlined" startIcon={<Add />} onClick={handleSubmit}>Create</Button>
-                    <Button variant="contained">Create and Test</Button>
+                    <Button variant="outlined" startIcon={mode === "create" ? <Add /> : <Done />} onClick={handleSubmit}>{mode === "create" ? "Create Deck" : "Save"}</Button>
+                    <Button variant="contained">{mode === "create" ? "Create and test" : "Save and test"}</Button>
                 </Box>
             </div>
-            <TextField sx={{marginBottom: 5}} fullWidth id="title" required onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleError ? titleError : false} helperText={titleErrorMessage}/>
-            <Typography color="error" variant="h5" hidden={cards.length > 0}>You must have at least one flashcard to create a deck</Typography>
+            <Collapse in={displayGeneralErrorMessage}>
+                <Alert sx={{mb: 2, whiteSpace: 'pre-line'}} severity="error" hidden={!displayGeneralErrorMessage} onClose={() => {setDisplayGeneralErrorMessage(false)}}>{generalErrorMessage}</Alert>
+            </Collapse>
+            <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleError ? titleError : false} helperText={titleErrorMessage}/>
             <div>
                 <ol className="flashcard-list">
                     {cards.map(card => (

@@ -7,6 +7,6 @@ class FlashcardSerializer(serializers.Serializer):
 
 class DeckSerializer(serializers.Serializer):
     title = serializers.CharField()
-    flashcards = serializers.ListField(child=FlashcardSerializer(), min_length=1, allow_empty=False)
+    flashcards = serializers.ListField(child=FlashcardSerializer(), allow_empty=False)
 
     

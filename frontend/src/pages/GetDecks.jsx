@@ -2,12 +2,13 @@ import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
 import { Box, TextField, Typography, Button, ButtonBase, Card, Grid2, IconButton} from "@mui/material";
 import "../styles/Layout.css";
-import { Edit } from "@mui/icons-material";
+import { Edit, Delete } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
+import { useNavigate } from "react-router-dom";
 
-function DeckCard({id, title, numOfCards}) {
+function DeckCard({id, title, numOfCards, onEdit, onDelete}) {
     return (
         
             <Card id = {id} sx={{ p: 3, boxShadow: 4 }}>
@@ -22,7 +23,8 @@ function DeckCard({id, title, numOfCards}) {
                             {numOfCards > 1 ? numOfCards + " cards" : "1 card"}
                         </Typography>
                         <Button variant="contained">Test</Button>
-                        <IconButton><Edit/></IconButton>
+                        <IconButton onClick={() => onEdit(id)}><Edit/></IconButton>
+                        <IconButton onClick={() => onDelete(id)}><Delete/></IconButton>
                     </Grid2>
                 </Grid2>
             </Card>
@@ -33,6 +35,7 @@ function DeckCard({id, title, numOfCards}) {
 function Decks() {
     const { currentUser } = useAuth()
     const [decks, setDecks] = React.useState([])
+    let navigate = useNavigate();
 
     useEffect(() => {
         getDecks()
@@ -40,13 +43,33 @@ function Decks() {
 
     const getDecks = async () => {
         const res = await api
-        .get("/api/decks/")
+        .get("/api/deck/get-decks")
         .then(res => res.data)
         .then(data => {
             data.forEach(deck => {
                 console.log(deck.title)
             });
             setDecks(data)
+        })
+        .catch(err => {
+            alert(err);
+        });
+    }
+
+    const editDeck = async (id) => {
+        navigate(`/edit-deck/${id}`)
+    }
+
+    const deleteDeck = async (id) => {
+        const res = await api
+        .delete(`/api/deck/delete-deck/${id}/`)
+        .then(res => {
+            if (res.status === 200) {
+                alert("Deck deleted successfully");
+                getDecks();
+            } else {
+                alert("Failed to delete deck");
+            }
         })
         .catch(err => {
             alert(err);
@@ -62,7 +85,7 @@ function Decks() {
                 <ul className="flashcard-list">
                     {decks.map(deck => (
                         <li key={deck.id}>
-                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards}/>
+                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} onEdit={editDeck} onDelete={deleteDeck} />
                         </li>
                     ))}
                 </ul>
