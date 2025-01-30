@@ -8,7 +8,9 @@ function Home() {
 
     return (
         <div>
-            <Typography variant="h4">Home</Typography>
+            <div className="page-header">
+                <Typography variant="h4">Home</Typography>
+            </div>
             <h2>Hello {currentUser.email}</h2>
         </div>
 

@@ -1,9 +1,10 @@
 import React from "react";
 import { useState} from "react";
-import { Button, Toolbar, AppBar, Typography, Box, Link, IconButton, Avatar, Tooltip, Menu, MenuItem, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
+import { Button, Toolbar, AppBar, Typography, Box, IconButton, Avatar, Tooltip, Menu, MenuItem, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { doSignOut } from "../../auth";
-import { LibraryAdd, Home } from "@mui/icons-material";
+import { LibraryAdd, Home, AutoAwesomeMotion } from "@mui/icons-material";
 import "../styles/Layout.css";
+import { Outlet, Link } from "react-router-dom";
 
 export default function Layout({ children }) {
     const [anchorElUser, setAnchorElUser] = useState(null);
@@ -60,7 +61,7 @@ export default function Layout({ children }) {
                 <Toolbar />
                 <List>
                     <ListItem key="home" disablePadding>
-                        <ListItemButton href="/">
+                        <ListItemButton component={Link} to="/">
                             <ListItemIcon>
                                 <Home />
                             </ListItemIcon>
@@ -68,20 +69,25 @@ export default function Layout({ children }) {
                         </ListItemButton>
                     </ListItem>
                     <ListItem key="my-flashcards" disablePadding>
-                        <ListItemButton href="/create">
+                        <ListItemButton component={Link} to="/create">
                             <ListItemIcon>
                                 <LibraryAdd />
                             </ListItemIcon>
                             <ListItemText primary="Create a new deck" />
                         </ListItemButton>
                     </ListItem>
+                    <ListItem key="edit-my-flashcards" disablePadding>
+                        <ListItemButton component={Link} to="/decks">
+                            <ListItemIcon>
+                                <AutoAwesomeMotion />
+                            </ListItemIcon>
+                            <ListItemText primary="My decks" />
+                        </ListItemButton>
+                    </ListItem>
                 </List>
             </Drawer>
             <div className="content">
-                
-                <div>
-                    {children}
-                </div>
+                <Outlet />
             </div>
         </div>
     );

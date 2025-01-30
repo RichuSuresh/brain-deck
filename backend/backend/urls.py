@@ -22,4 +22,6 @@ from api import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/create-deck/", views.createDeck),
+    path("api/decks/", views.getAllDecks),
+    path("api/decks/edit/<id>/", views.getDeck),
 ]

@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
 import { Box, Grid2, TextField, Typography, Button, Card, IconButton } from "@mui/material";
 import "../styles/Layout.css";
-import { Delete, Add } from "@mui/icons-material";
+import { Delete, Add, Save, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
-import { useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 class Flashcard {
     constructor(term = "", definition = "") {
@@ -30,14 +30,17 @@ class Flashcard {
     }
 }
 
-function CreateDeck() {
+function EditDeck() {
+    const { id } = useParams()
     const { currentUser } = useAuth()
     const [cards, setCards] = React.useState([new Flashcard()])
     const [title, setTitle] = React.useState("")
     const [titleError, setTitleError] = React.useState(false)
     const [titleErrorMessage, setTitleErrorMessage] = React.useState('')
 
-    let navigate = useNavigate();
+    useEffect(() => {
+        getDeck()
+    }, [])
 
     const deleteCard = (id) => {
         setCards(
@@ -52,6 +55,24 @@ function CreateDeck() {
             ...cards,
             new Flashcard()
         ]);
+    }
+
+    const getDeck = async () => {
+        const res = await api
+        .get(`/api/decks/edit/${id}/`)
+        .then(res => res.data)
+        .then(data => {
+            setCards(data.flashcards)
+            var cards = []
+            data.flashcards.forEach(card => {
+                cards.push(new Flashcard(card.term, card.definition))
+            });
+            setCards(cards)
+            setTitle(data.title)
+        })
+        .catch(err => {
+            alert(err);
+        });
     }
 
     const handleSubmit = (e) => {
@@ -89,12 +110,12 @@ function CreateDeck() {
         if (!isValid) {
             return;
         } else {
-            createDeck();
+            updateDeck();
         }
 
     }
 
-    const createDeck = async () => {
+    const updateDeck = async () => {
         const deck = {
             title: title,
             flashcards: cards.map(card => {
@@ -105,28 +126,33 @@ function CreateDeck() {
                 }
             })
         }
-        const res = await api.post("/api/create-deck/", deck).then(res => {
-            if (res.status === 200) {
-                alert("Deck created successfully!");
-                navigate(`/edit-deck/${res.data.data.deckId}`);
-            } else {
-                alert("Failed to create deck");
-            }
-        }).catch(err => {
-            alert(err);
-        });
+        // const res = await api.post("/api/create-deck/", deck).then(res => {
+        //     if (res.status === 200) {
+        //         alert("Deck created successfully!");
+        //     } else {
+        //         alert("Failed to create deck");
+        //     }
+        // }).catch(err => {
+        //     alert(err);
+        // });
+        
+        console.log(deck);
+    }
+
+    const handleTitleChange = (e) => {
+        setTitle(e.target.value)
     }
 
     return (
         <div>
             <div className="page-header">
-                <Typography variant="h4">Create a new Deck</Typography>
+                <Typography variant="h4">Edit Deck</Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', gap:2}}>
-                    <Button variant="outlined" startIcon={<Add />} onClick={handleSubmit}>Create</Button>
-                    <Button variant="contained">Create and Test</Button>
+                    <Button variant="outlined" startIcon={<Done />} onClick={handleSubmit}>Save</Button>
+                    <Button variant="contained">Save and Test</Button>
                 </Box>
             </div>
-            <TextField sx={{marginBottom: 5}} fullWidth id="title" required onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleError ? titleError : false} helperText={titleErrorMessage}/>
+            <TextField sx={{marginBottom: 5}} fullWidth id="title" required value={title} onChange={handleTitleChange} label="Deck title" variant="standard" error={titleError ? titleError : false} helperText={titleErrorMessage}/>
             <Typography color="error" variant="h5" hidden={cards.length > 0}>You must have at least one flashcard to create a deck</Typography>
             <div>
                 <ol className="flashcard-list">
@@ -143,4 +169,4 @@ function CreateDeck() {
     );
 }
 
-export default CreateDeck
+export default EditDeck
