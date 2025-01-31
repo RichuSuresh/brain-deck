@@ -46,6 +46,9 @@ def editDeck(request, id):
         uid = decoded_token['uid']
 
         doc_ref = db.collection('users').document(uid).collection('decks').document(id)
+        if(not doc_ref.get().exists):
+            return Response({'message': 'Deck could not be found.'}, status=status.HTTP_404_NOT_FOUND)
+
         if request.method == 'PATCH':
             serializer = DeckSerializer(data=request.data)
             if serializer.is_valid():

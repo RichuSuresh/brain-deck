@@ -1,10 +1,8 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, TextField, Typography, Button, ButtonBase, Card, Grid2, IconButton} from "@mui/material";
+import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Alert} from "@mui/material";
 import "../styles/Layout.css";
 import { Edit, Delete } from "@mui/icons-material";
-import { v4 as uuid } from "uuid";
-import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
@@ -24,7 +22,7 @@ function DeckCard({id, title, numOfCards, onEdit, onDelete}) {
                         </Typography>
                         <Button variant="contained">Test</Button>
                         <IconButton onClick={() => onEdit(id)}><Edit/></IconButton>
-                        <IconButton onClick={() => onDelete(id)}><Delete/></IconButton>
+                        <IconButton onClick={() => onDelete(id, title, numOfCards)}><Delete/></IconButton>
                     </Grid2>
                 </Grid2>
             </Card>
@@ -35,6 +33,10 @@ function DeckCard({id, title, numOfCards, onEdit, onDelete}) {
 function Decks() {
     const { currentUser } = useAuth()
     const [decks, setDecks] = React.useState([])
+    const [showConfirmDelete, setConfirmDelete] = React.useState(false);
+    const [selectedDeck, setSelectedDeck] = React.useState(null);
+    const [deleteSuccessMessage, setDeleteSuccessMessage] = React.useState('');
+    const [deleteErrorMessage, setDeleteErrorMessage] = React.useState('');
     let navigate = useNavigate();
 
     useEffect(() => {
@@ -46,9 +48,6 @@ function Decks() {
         .get("/api/deck/get-decks")
         .then(res => res.data)
         .then(data => {
-            data.forEach(deck => {
-                console.log(deck.title)
-            });
             setDecks(data)
         })
         .catch(err => {
@@ -64,15 +63,11 @@ function Decks() {
         const res = await api
         .delete(`/api/deck/delete-deck/${id}/`)
         .then(res => {
-            if (res.status === 200) {
-                alert("Deck deleted successfully");
-                getDecks();
-            } else {
-                alert("Failed to delete deck");
-            }
+            getDecks();
+            setDeleteSuccessMessage(`${selectedDeck?.title} was deleted successfully`);
         })
         .catch(err => {
-            alert(err);
+            setDeleteErrorMessage(`An error occurred whilst deleting the deck: ${selectedDeck?.title}\n\n${err.response?.data.message ?? err.message}`);
         });
     }
 
@@ -81,15 +76,43 @@ function Decks() {
             <div className="page-header">
                 <Typography variant="h4">My Flashcard Decks</Typography>
             </div>
+            <Collapse in={deleteSuccessMessage !== ''}>
+                <Alert severity="success" onClose={() => {setDeleteSuccessMessage('')}}>{deleteSuccessMessage}</Alert>
+            </Collapse>
+            <Collapse in={deleteErrorMessage !== ''}>
+                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setDeleteErrorMessage('')}}>{deleteErrorMessage}</Alert>
+            </Collapse>
             <div>
                 <ul className="flashcard-list">
                     {decks.map(deck => (
                         <li key={deck.id}>
-                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} onEdit={editDeck} onDelete={deleteDeck} />
+                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
                         </li>
                     ))}
                 </ul>
             </div>
+            <Modal open={showConfirmDelete}>
+                <Box sx={{display: 'flex',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                        gap:2, 
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        maxWidth: 400,
+                        transform: 'translate(-50%, -50%)',
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        borderRadius: 1,
+                        p: 4,}}>
+                    <Typography id="modal-modal-title" variant="h4" component="h2">Delete deck</Typography>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">{`Are you sure you want to delete "${selectedDeck?.title}" which has ${selectedDeck?.numOfCards} ${selectedDeck?.numOfCards > 1 ? "cards" : "card"}? This action cannot be undone`}</Typography>
+                    <Box sx={{display: 'flex', gap: 2}}>
+                        <Button variant="outlined" onClick={() => {setConfirmDelete(false)}}>Cancel</Button>
+                        <Button variant="contained" color="error" onClick={() => {deleteDeck(selectedDeck?.id); setConfirmDelete(false)}}>Delete</Button>
+                    </Box>
+                </Box>
+            </Modal>
         </div>
 
     );

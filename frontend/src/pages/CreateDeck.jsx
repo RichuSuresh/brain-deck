@@ -1,12 +1,13 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, Grid2, TextField, Typography, Button, Card, IconButton, Alert, Collapse, Modal } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal } from "@mui/material";
 import "../styles/Layout.css";
-import { Delete, Add, Done } from "@mui/icons-material";
+import { Add, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
 import { useNavigate, useParams } from "react-router-dom";
+import tick from '../assets/tick.svg';
 
 class Flashcard {
     constructor(term = "", definition = "") {
@@ -39,6 +40,7 @@ function CreateAndEditDeck({mode}) {
     const [titleErrorMessage, setTitleErrorMessage] = React.useState('')
     const [generalErrorMessage, setGeneralErrorMessage] = React.useState('')
     const [displayGeneralErrorMessage, setDisplayGeneralErrorMessage] = React.useState(false)
+    const [showModal, setShowModal] = React.useState(false);
 
     let navigate = useNavigate();
 
@@ -139,7 +141,6 @@ function CreateAndEditDeck({mode}) {
     const handleErrorResponse = (err) => {
         setDisplayGeneralErrorMessage(true);
         var errorMessage = "Some errors occurred whilst processing your request... ";
-        console.log(err);
         if (err.status === 400) {
             if(err.response.data.title) {
                 errorMessage += "\n\nTitle: " + err.response.data.title[0];
@@ -159,8 +160,10 @@ function CreateAndEditDeck({mode}) {
                     }
                 }
             }
-        } else {
+        } else if (err.response){
             errorMessage += "\n\n" + err.response.data.message;
+        } else {
+            errorMessage += "\n\n" + err.message;
         }
         setGeneralErrorMessage(errorMessage);
     }
@@ -180,13 +183,14 @@ function CreateAndEditDeck({mode}) {
         if(mode === "create") {
             const res = await api.post("/api/deck/create-deck/", deck).then(res => {
                 navigate(`/edit-deck/${res.data.data.deckId}`);
+                setShowModal(true);
             }).catch(err => {
                 handleErrorResponse(err);
             });
         } else if (mode === "edit") {
             const res = await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
                 if (res.status === 200) {
-                    alert("Your changes have been saved successfully!");
+                    setShowModal(true);
                 } else {
                     alert("Failed to save changes");
                 }
@@ -206,7 +210,7 @@ function CreateAndEditDeck({mode}) {
                 </Box>
             </div>
             <Collapse in={displayGeneralErrorMessage}>
-                <Alert sx={{mb: 2, whiteSpace: 'pre-line'}} severity="error" hidden={!displayGeneralErrorMessage} onClose={() => {setDisplayGeneralErrorMessage(false)}}>{generalErrorMessage}</Alert>
+                <Alert sx={{mb: 2, whiteSpace: 'pre-line'}} severity="error" onClose={() => {setDisplayGeneralErrorMessage(false)}}>{generalErrorMessage}</Alert>
             </Collapse>
             <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleError ? titleError : false} helperText={titleErrorMessage}/>
             <div>
@@ -219,6 +223,25 @@ function CreateAndEditDeck({mode}) {
                 </ol>
                 <Button variant="contained" startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
             </div>
+            <Modal open={showModal}>
+                <Box sx={{display: 'flex',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                        gap:2, 
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        bgcolor: 'background.paper',
+                        boxShadow: 24,
+                        borderRadius: 1,
+                        p: 4,}}>
+                    <Typography id="modal-modal-title" variant="h4" component="h2">Your deck is ready</Typography>
+                    <img src={tick} alt="tick" style={{width: 150}}/>
+                    <Button variant="contained" onClick={() => {setShowModal(false)}}>Continue editing</Button>
+                    <Button variant="outlined" onClick={() => navigate(`/decks`)}>View created Decks</Button>
+                </Box>
+            </Modal>
         </div>
 
     );
