@@ -6,9 +6,9 @@ import Home from "./pages/Home"
 import NotFound from "./pages/NotFound"
 import ProtectedRoute from "./components/ProtectedRoute"
 import { AuthProvider } from "./components/AuthProvider"
-import CreateAndEditDeck from "./pages/CreateDeck"
+import CreateAndEditDeck from "./pages/CreateAndEditDeck"
 import Layout from "./components/Layout"
-import Decks from "./pages/GetDecks"
+import Decks from "./pages/Decks"
 
 function Logout() {
   return <Navigate to="/login" />

@@ -6,7 +6,7 @@ import { LibraryAdd, Home, AutoAwesomeMotion } from "@mui/icons-material";
 import "../styles/Layout.css";
 import { Outlet, Link } from "react-router-dom";
 
-export default function Layout({ children }) {
+export default function Layout() {
     const [anchorElUser, setAnchorElUser] = useState(null);
     
     const handleOpenUserMenu = (event) => {
