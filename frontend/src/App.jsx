@@ -9,6 +9,7 @@ import { AuthProvider } from "./components/AuthProvider"
 import CreateAndEditDeck from "./pages/CreateAndEditDeck"
 import Layout from "./components/Layout"
 import Decks from "./pages/Decks"
+import TestDeck from "./pages/TestDeck"
 
 function Logout() {
   return <Navigate to="/login" />
@@ -29,6 +30,7 @@ function App() {
             <Route path="/decks" element={<Decks />} />
             <Route path="/edit-deck/:id" element={<CreateAndEditDeck mode="edit"/>} />
           </Route>
+          <Route path="/test/:id" element={<ProtectedRoute><TestDeck/></ProtectedRoute>} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<ResgisterAndLogout />} />

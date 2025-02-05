@@ -200,13 +200,44 @@ function CreateAndEditDeck({mode}) {
         }
     }
 
+    const createAndTest = async () => {
+        const deck = {
+            title: title,
+            flashcards: cards.map(card => {
+                return {
+                    id: card.id,
+                    term: card.term,
+                    definition: card.definition
+                }
+            })
+        }
+
+        if(mode === "create") {
+            const res = await api.post("/api/deck/create-deck/", deck).then(res => {
+                navigate(`/test/${res.data.data.deckId}`);
+            }).catch(err => {
+                handleErrorResponse(err);
+            });
+        } else if (mode === "edit") {
+            const res = await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
+                if (res.status === 200) {
+                    navigate(`/test/${id}`);
+                } else {
+                    alert("Failed to save changes");
+                }
+            }).catch(err => {
+                handleErrorResponse(err);
+            });
+        }
+    }
+
     return (
         <div>
             <div className="page-header">
                 <Typography variant="h4">{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', gap:2}}>
                     <Button variant="outlined" startIcon={mode === "create" ? <Add /> : <Done />} onClick={handleSubmit}>{mode === "create" ? "Create Deck" : "Save"}</Button>
-                    <Button variant="contained">{mode === "create" ? "Create and test" : "Save and test"}</Button>
+                    <Button variant="contained" onClick={createAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
                 </Box>
             </div>
             <Collapse in={displayGeneralErrorMessage}>
