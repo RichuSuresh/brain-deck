@@ -27,6 +27,7 @@ html, body {
 .test-screen {
     position: relative;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
@@ -43,5 +44,5 @@ html, body {
     padding: 20px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     width: 900px;
-    height: 600px;
+    min-height: 600px;
 }

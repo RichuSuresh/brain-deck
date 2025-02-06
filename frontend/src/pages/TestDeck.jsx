@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon } from "@mui/material";
 import "../styles/Layout.css";
-import { Add, Done } from "@mui/icons-material";
+import { Add, Close, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
@@ -24,12 +24,14 @@ function TestDeck() {
     const { currentUser } = useAuth()
     const { id } = useParams()
     const [cards, setCards] = useState([new Flashcard()])
-    let [currentCardIndex, setCurrentCardIndex] = useState(0)
+    const [currentCardIndex, setCurrentCardIndex] = useState(0)
     const [title, setTitle] = useState("")
     const [showModal, setShowModal] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
     const [triggerSlide, setTriggerSlide] = useState(true);
     const [slideDirection, setSlideDirection] = useState('left');
+    const [testFinished, setTestFinished] = useState(false);
+    const [exitTest, setExitTest] = useState(false);
 
     let navigate = useNavigate();
 
@@ -62,7 +64,7 @@ function TestDeck() {
 
     const handleGradeSubmit = (rating) => {
         switch (rating) {
-            case "again":
+            case "forgot":
                 break;
             case "hard":
                 break;
@@ -84,14 +86,16 @@ function TestDeck() {
                 setIsFlipped(false);
                 setTriggerSlide(true);
             }, 300);
+        } else {
+            setTestFinished(true);
         }
     }
 
-    
-
-
     return (
         <div className="test-screen">
+            <IconButton onClick={() => {setExitTest(true)}}sx={{position: 'absolute', top: 10, right: 10, width: 50, height: 50}}>
+                <Close sx={{ width: '100%', height: '100%' }}/>
+            </IconButton>
             <Slide direction={slideDirection} in={triggerSlide} mountOnEnter unmountOnExit>
                 <div>
                     <ReactCardFlip isFlipped={isFlipped}>
@@ -118,18 +122,18 @@ function TestDeck() {
                                     How well did you recall this?
                                 </Box>
                             </Typography>
-                            <Grid2 container sx={{alignItems: 'center', gap: 2}}>
+                            <Grid2 container sx={{alignItems: 'center', gap: 2, marginBottom: 1}}>
                                 <Grid2 >
-                                    <Button variant="contained" color="error" onClick={() => {handleGradeSubmit('again')}}>Again</Button>
+                                    <Button variant="contained" color="error" onClick={() => {handleGradeSubmit('forgot')}}>forgot</Button>
                                 </Grid2>
                                 <Grid2 >
-                                    <Button variant="contained" color="warning" onClick={() => {handleGradeSubmit('hard')}}>Hard</Button>
+                                    <Button variant="contained" color="warning" onClick={() => {handleGradeSubmit('hard')}}>hard</Button>
                                 </Grid2>
                                 <Grid2 >
-                                    <Button variant="contained" color="info" onClick={() => {handleGradeSubmit('good')}}>Good</Button>
+                                    <Button variant="contained" color="info" onClick={() => {handleGradeSubmit('good')}}>good</Button>
                                 </Grid2>
                                 <Grid2 >
-                                    <Button variant="contained" color="success" onClick={() => {handleGradeSubmit('easy')}}>Easy</Button>
+                                    <Button variant="contained" color="success" onClick={() => {handleGradeSubmit('easy')}}>easy</Button>
                                 </Grid2>
                             </Grid2>
                             <IconButton onClick={() => {setIsFlipped(!isFlipped)}}sx={{ width: 70, height: 70}}>
@@ -139,6 +143,43 @@ function TestDeck() {
                     </ReactCardFlip>
                 </div>
             </Slide>
+            <Modal open={testFinished}>
+                <Card sx={{display: 'flex',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                        gap:2, 
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        boxShadow: 24,
+                        p: 4,}}>
+                    <Typography id="modal-modal-title" variant="h4" component="h2">Review Complete!</Typography>
+                    <img src={tick} alt="tick" style={{width: 150}}/>
+                    <Button variant="contained" onClick={() => {setTestFinished(false); navigate(`/edit-deck/${id}`)}}>Edit deck</Button>
+                    <Button variant="outlined" onClick={() => {setTestFinished(false); navigate('/decks')}}>Return to decks</Button>
+                </Card>
+            </Modal>
+            <Modal open={exitTest}>
+                <Card sx={{display: 'flex',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                        gap:2, 
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        maxWidth: 400,
+                        transform: 'translate(-50%, -50%)',
+                        boxShadow: 24,
+                        p: 4,}}>
+                    <Typography id="modal-modal-title" variant="h4" component="h2">End test?</Typography>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">{`Only ${cards.length - currentCardIndex} more card${cards.length - currentCardIndex === 1 ? '' : 's'} left, you can do it!`}</Typography>
+                    <Box sx={{display: 'flex', gap: 2}}>
+                        <Button variant="contained" onClick={() => {setExitTest(false)}}>keep going</Button>
+                        <Button variant="outlined" color="error" onClick={() => {setExitTest(false); navigate(`/edit-deck/${id}`)}}>End Test</Button>
+                    </Box>
+                </Card>
+            </Modal>
         </div>
     );
 }

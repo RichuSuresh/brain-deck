@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card } from "@mui/material";
 import "../styles/Layout.css";
 import { Add, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -255,7 +255,7 @@ function CreateAndEditDeck({mode}) {
                 <Button variant="contained" startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
             </div>
             <Modal open={showModal}>
-                <Box sx={{display: 'flex',
+                <Card sx={{display: 'flex',
                         alignItems: 'center',
                         flexDirection: 'column',
                         gap:2, 
@@ -263,15 +263,13 @@ function CreateAndEditDeck({mode}) {
                         top: '50%',
                         left: '50%',
                         transform: 'translate(-50%, -50%)',
-                        bgcolor: 'background.paper',
                         boxShadow: 24,
-                        borderRadius: 1,
                         p: 4,}}>
                     <Typography id="modal-modal-title" variant="h4" component="h2">Your deck is ready</Typography>
                     <img src={tick} alt="tick" style={{width: 150}}/>
                     <Button variant="contained" onClick={() => {setShowModal(false)}}>Continue editing</Button>
                     <Button variant="outlined" onClick={() => navigate(`/decks`)}>View created Decks</Button>
-                </Box>
+                </Card>
             </Modal>
         </div>
 

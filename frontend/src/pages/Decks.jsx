@@ -6,7 +6,7 @@ import { Edit, Delete } from "@mui/icons-material";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
-function DeckCard({id, title, numOfCards, onEdit, onDelete}) {
+function DeckCard({id, title, numOfCards, onTest, onEdit, onDelete}) {
     return (
         
             <Card id = {id} sx={{ p: 3, boxShadow: 4 }}>
@@ -20,7 +20,7 @@ function DeckCard({id, title, numOfCards, onEdit, onDelete}) {
                         <Typography>
                             {numOfCards > 1 ? numOfCards + " cards" : "1 card"}
                         </Typography>
-                        <Button variant="contained">Test</Button>
+                        <Button variant="contained" onClick={() => onTest(id)}>Test</Button>
                         <IconButton onClick={() => onEdit(id)}><Edit/></IconButton>
                         <IconButton onClick={() => onDelete(id, title, numOfCards)}><Delete/></IconButton>
                     </Grid2>
@@ -59,6 +59,10 @@ function Decks() {
         navigate(`/edit-deck/${id}`)
     }
 
+    const testDeck = async (id) => {
+        navigate(`/test/${id}`)
+    }
+
     const deleteDeck = async (id) => {
         const res = await api
         .delete(`/api/deck/delete-deck/${id}/`)
@@ -86,13 +90,13 @@ function Decks() {
                 <ul className="flashcard-list">
                     {decks.map(deck => (
                         <li key={deck.id}>
-                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
+                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} onTest={testDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
                         </li>
                     ))}
                 </ul>
             </div>
             <Modal open={showConfirmDelete}>
-                <Box sx={{display: 'flex',
+                <Card sx={{display: 'flex',
                         alignItems: 'center',
                         flexDirection: 'column',
                         gap:2, 
@@ -101,9 +105,7 @@ function Decks() {
                         left: '50%',
                         maxWidth: 400,
                         transform: 'translate(-50%, -50%)',
-                        bgcolor: 'background.paper',
                         boxShadow: 24,
-                        borderRadius: 1,
                         p: 4,}}>
                     <Typography id="modal-modal-title" variant="h4" component="h2">Delete deck</Typography>
                     <Typography id="modal-modal-title" variant="h6" component="h2">{`Are you sure you want to delete "${selectedDeck?.title}" which has ${selectedDeck?.numOfCards} ${selectedDeck?.numOfCards > 1 ? "cards" : "card"}? This action cannot be undone`}</Typography>
@@ -111,7 +113,7 @@ function Decks() {
                         <Button variant="outlined" onClick={() => {setConfirmDelete(false)}}>Cancel</Button>
                         <Button variant="contained" color="error" onClick={() => {deleteDeck(selectedDeck?.id); setConfirmDelete(false)}}>Delete</Button>
                     </Box>
-                </Box>
+                </Card>
             </Modal>
         </div>
 
