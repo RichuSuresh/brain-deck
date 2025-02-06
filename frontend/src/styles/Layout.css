@@ -9,6 +9,10 @@
     margin-top: 90px;
 }
 
+html, body {
+    margin: 0;
+}
+
 .page-header {
     display: flex;
     width: 100%;
@@ -18,4 +22,26 @@
 
 .flashcard-list li{
     margin-bottom: 25px;
+}
+
+.test-screen {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f1f1f1; /* Desired background color */
+    overflow: hidden; /* Prevents scroll bar during animation */
+}
+
+.test-screen .card {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    width: 900px;
+    height: 600px;
 }
