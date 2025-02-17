@@ -10,8 +10,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import tick from '../assets/tick.svg';
 
 class Flashcard {
-    constructor(term = "", definition = "") {
-        this.id = uuid()
+    constructor(id = uuid(), term = "", definition = "") {
+        this.id = id
         this.term = term
         this.definition = definition
         this.termError = false
@@ -81,7 +81,8 @@ function CreateAndEditDeck({mode}) {
             setCards(data.flashcards)
             var cards = []
             data.flashcards.forEach(card => {
-                cards.push(new Flashcard(card.term, card.definition))
+                console.log(card);
+                cards.push(new Flashcard(card.id, card.term, card.definition))
             });
             setCards(cards)
             setTitle(data.title)

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, FormHelperText } from "@mui/material";
 import "../styles/Layout.css";
 import { Add, Close, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -13,20 +13,20 @@ import ReactCardFlip from "react-card-flip";
 import { SyncAlt } from "@mui/icons-material";
 
 class Flashcard {
-    constructor(term = "", definition = "") {
-        this.id = uuid()
+    constructor(id, term, definition) {
+        this.id = id
         this.term = term
         this.definition = definition
     };
 }
 
+
+
 function TestDeck() {
-    const { currentUser } = useAuth()
     const { id } = useParams()
     const [cards, setCards] = useState([new Flashcard()])
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
-    const [title, setTitle] = useState("")
-    const [showModal, setShowModal] = useState(false);
+    const [gradeError, setGradeError] = useState(false);
     const [isFlipped, setIsFlipped] = useState(false);
     const [triggerSlide, setTriggerSlide] = useState(true);
     const [slideDirection, setSlideDirection] = useState('left');
@@ -47,35 +47,47 @@ function TestDeck() {
             setCards(data.flashcards)
             var cards = []
             data.flashcards.forEach(card => {
-                cards.push(new Flashcard(card.term, card.definition))
+                cards.push(new Flashcard(card.id, card.term, card.definition))
             });
             setCards(cards)
-            setTitle(data.title)
-            console.log(cards)
         })
         .catch(err => {
             alert(err);
         });
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    const updateCard = async (cardId, grade) => {
+        const res = await api
+        .patch(`/api/test/${id}/update-card/`, {id: cardId, grade: grade})
+        .catch(err => {
+            console.log(err);
+            alert(err);
+        });
     }
 
-    const handleGradeSubmit = (rating) => {
-        switch (rating) {
+    const handleGradeSubmit = (event) => {
+        event.preventDefault();
+        const data = new FormData(event.currentTarget);
+
+        switch (data.get('grade')) {
             case "forgot":
+                updateCard(cards[currentCardIndex].id, "forgot");
                 break;
             case "hard":
+                updateCard(cards[currentCardIndex].id, "hard");
                 break;
             case "good":
+                updateCard(cards[currentCardIndex].id, "good");
                 break;
             case "easy":
+                updateCard(cards[currentCardIndex].id, "easy");
                 break;
             default:
-                break;
+                setGradeError(true);
+                return;
         }
         
+        setGradeError(false);
         setSlideDirection('right');
         setTriggerSlide(false);
 
@@ -122,20 +134,17 @@ function TestDeck() {
                                     How well did you recall this?
                                 </Box>
                             </Typography>
-                            <Grid2 container sx={{alignItems: 'center', gap: 2, marginBottom: 1}}>
-                                <Grid2 >
-                                    <Button variant="contained" color="error" onClick={() => {handleGradeSubmit('forgot')}}>forgot</Button>
-                                </Grid2>
-                                <Grid2 >
-                                    <Button variant="contained" color="warning" onClick={() => {handleGradeSubmit('hard')}}>hard</Button>
-                                </Grid2>
-                                <Grid2 >
-                                    <Button variant="contained" color="info" onClick={() => {handleGradeSubmit('good')}}>good</Button>
-                                </Grid2>
-                                <Grid2 >
-                                    <Button variant="contained" color="success" onClick={() => {handleGradeSubmit('easy')}}>easy</Button>
-                                </Grid2>
-                            </Grid2>
+                            <form id="gradeForm" onSubmit={handleGradeSubmit}>
+                                <FormControl error={gradeError}>
+                                    <RadioGroup row name="grade">
+                                        <FormControlLabel value="forgot" control={<Radio color="error"/>} label="Forgot" />
+                                        <FormControlLabel value="hard" control={<Radio color="warning"/>} label="Hard" />
+                                        <FormControlLabel value="good" control={<Radio color="info"/>} label="Good" />
+                                        <FormControlLabel value="easy" control={<Radio color="success"/>} label="Easy" />
+                                    </RadioGroup>
+                                    {gradeError && <FormHelperText sx={{display: 'flex', justifyContent: 'center'}}>Please select a grade.</FormHelperText>}
+                                </FormControl>
+                            </form>
                             <IconButton onClick={() => {setIsFlipped(!isFlipped)}}sx={{ width: 70, height: 70}}>
                                 <SyncAlt sx={{ width: '100%', height: '100%' }}/>
                             </IconButton>
@@ -143,6 +152,7 @@ function TestDeck() {
                     </ReactCardFlip>
                 </div>
             </Slide>
+            {isFlipped && <Button sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
             <Modal open={testFinished}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',

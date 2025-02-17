@@ -45,7 +45,7 @@ function Decks() {
 
     const getDecks = async () => {
         const res = await api
-        .get("/api/deck/get-decks")
+        .get("/api/deck/get-decks/")
         .then(res => res.data)
         .then(data => {
             setDecks(data)
