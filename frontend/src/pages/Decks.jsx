@@ -4,7 +4,7 @@ import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Aler
 import "../styles/Layout.css";
 import { Edit, Delete } from "@mui/icons-material";
 import api from "../api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function DeckCard({id, title, numOfCards, onTest, onEdit, onDelete}) {
     return (
@@ -75,6 +75,20 @@ function Decks() {
         });
     }
 
+    const noDecks = () => {
+        return(
+            <Typography variant="h6">
+                <Box sx={{fontWeight: 'bold', marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
+                    Looks like you haven't created any flashcards, create some{" "}
+                    <Link to="/create" style={{ textDecoration: 'underline', color: "blue" }}>
+                        here
+                    </Link>
+                    .
+                </Box>
+            </Typography>
+        )
+    }
+
     return (
         <div>
             <div className="page-header">
@@ -94,6 +108,7 @@ function Decks() {
                         </li>
                     ))}
                 </ul>
+                {decks.length === 0 && noDecks()}
             </div>
             <Modal open={showConfirmDelete}>
                 <Card sx={{display: 'flex',

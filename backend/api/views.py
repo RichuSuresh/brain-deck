@@ -54,13 +54,24 @@ def editDeck(request, id):
 
         if request.method == 'PATCH':
             serializer = DeckSerializer(data=request.data)
-            if serializer.is_valid():
-                validData = serializer.validated_data
-                validData['numberOfCards'] = len(validData['flashcards'])
-                doc_ref.update(validData)
-                return Response({'message': 'Data updated successfully'}, status=status.HTTP_200_OK)
-            else:
+            if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+            deck = doc_ref.get().to_dict()
+            originalFlashcards = deck['flashcards']
+            validData = serializer.validated_data
+            validData['numberOfCards'] = len(validData['flashcards'])
+
+            for i in range(len(validData['flashcards'])):
+                for originalFlashcard in originalFlashcards:
+                    if originalFlashcard['id'] == validData['flashcards'][i]['id']:
+                        newFlashcard = originalFlashcard
+                        newFlashcard['term'] = validData['flashcards'][i]['term']
+                        newFlashcard['definition'] = validData['flashcards'][i]['definition']
+                        validData['flashcards'][i] = newFlashcard
+                
+            doc_ref.update(validData)
+            return Response({'message': 'Data updated successfully'}, status=status.HTTP_200_OK)
         elif request.method == 'DELETE':
             doc_ref.delete()
             return Response({'message': 'Data deleted successfully'}, status=status.HTTP_200_OK)
@@ -100,8 +111,14 @@ def getDeck(request, id):
         uid = decoded_token['uid']
 
         doc_ref = db.collection('users').document(uid).collection('decks').document(id)
+        if(not doc_ref.get().exists):
+            return Response({'message': 'Deck could not be found.'}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response(doc_ref.get().to_dict(), status=status.HTTP_200_OK)
+        deck = doc_ref.get().to_dict()
+        for i in range(len(deck['flashcards'])):
+            deck['flashcards'][i] = {'id': deck['flashcards'][i]['id'], 'term': deck['flashcards'][i]['term'], 'definition': deck['flashcards'][i]['definition']}
+        
+        return Response(deck, status=status.HTTP_200_OK)
     except auth.InvalidIdTokenError:
         return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -120,11 +137,10 @@ def updateFlashcard(request, id):
             return Response({'message': 'Deck could not be found.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = FlashcardUpateSerializer(data=request.data)
-        flashcards = doc_ref.get().to_dict()['flashcards']
-        print(flashcards)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
+        flashcards = doc_ref.get().to_dict()['flashcards']
         validData = serializer.validated_data
         for i in range(len(flashcards)):
             if flashcards[i]['id'] == validData['id']:

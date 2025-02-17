@@ -14,11 +14,15 @@ def FSRS(card, grade):
     FACTOR = 19/81
     REQUESTED_RETENTION = 0.9
     grade = gradeDict[grade]
+    today = datetime.now(timezone.utc)
     if "lastReview" not in card:
-        card["lastReview"] = datetime.now()
+        card["lastReview"] = today
 
     lastReview = card["lastReview"]
-    daysSinceLastReview = (datetime.now() - lastReview).days
+    
+    print(today)
+    print(lastReview)
+    daysSinceLastReview = (today - lastReview).days
     print("daysSinceLastReview", daysSinceLastReview)
 
     if "difficulty" not in card:
@@ -26,7 +30,7 @@ def FSRS(card, grade):
     else:
         changeInDifficulty = -w[6] * (grade - 3)
         originalDifficulty = card["difficulty"]
-        linearDamping = originalDifficulty + (changeInDifficulty * (10 - originalDifficulty)/9)
+        linearDamping = originalDifficulty + changeInDifficulty * ((10 - originalDifficulty)/9)
         card["difficulty"] = w[7] * (w[4] - math.exp(w[5] * (4 - 1)) + 1) + (1 - w[7]) * linearDamping
     
     if "retrievability" not in card:
@@ -37,27 +41,27 @@ def FSRS(card, grade):
     if "stability" not in card:
         card["stability"] = w[grade - 1]
     elif "stability" in card and daysSinceLastReview <= 0:
-        print("testtttttttttttttttttttttttttttttttttttttt")
         originalStability = card["stability"]
-        card['stability'] = originalStability * math.exp(originalStability * math.exp(w[17] * (grade - 3 + w[18])))
+        card['stability'] = originalStability * math.exp(math.exp(w[17] * (grade - 3 + w[18])))
     elif grade == 2 or grade == 3 or grade == 4:
         originalStability = card["stability"]
         card['stability'] = originalStability * (
             math.exp(w[8]) *
             (11 - card['difficulty']) *
-            originalStability**w[9] *
+            originalStability**-w[9] *
             (math.exp(w[10] * (1 - card['retrievability'])) - 1) *
             (w[15] if (grade == 2) else (w[16] if (grade == 4) else 1)) +
             1
         )
     else:
         originalStability = card["stability"]
-        card['stability'] = w[11] * (card['difficulty']**w[12]) * (((originalStability + 1)**w[13]) - 1) * math.exp(w[14] * (1 - card['retrievability']))
+        card['stability'] = w[11] * (card['difficulty']**-w[12]) * (((originalStability + 1)**w[13]) - 1) * math.exp(w[14] * (1 - card['retrievability']))
     
 
     nextInterval = (card['stability'] / FACTOR) * ((REQUESTED_RETENTION**(1/DECAY))-1)
-    nextInterval = datetime.now() + timedelta(days=nextInterval)
+    print(nextInterval)
+    nextInterval = today + timedelta(days=nextInterval)
     card['nextInterval'] = nextInterval
-    card['lastReview'] = datetime.now()
+    card['lastReview'] = today
 
     return card
