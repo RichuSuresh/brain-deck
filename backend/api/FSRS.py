@@ -20,10 +20,8 @@ def FSRS(card, grade):
 
     lastReview = card["lastReview"]
     
-    print(today)
-    print(lastReview)
+
     daysSinceLastReview = (today - lastReview).days
-    print("daysSinceLastReview", daysSinceLastReview)
 
     if "difficulty" not in card:
         card["difficulty"] = w[4] - math.exp(w[5] * (grade - 1)) + 1
@@ -42,7 +40,7 @@ def FSRS(card, grade):
         card["stability"] = w[grade - 1]
     elif "stability" in card and daysSinceLastReview <= 0:
         originalStability = card["stability"]
-        card['stability'] = originalStability * math.exp(math.exp(w[17] * (grade - 3 + w[18])))
+        card['stability'] = originalStability * math.exp(w[17] * (grade - 3 + w[18]))
     elif grade == 2 or grade == 3 or grade == 4:
         originalStability = card["stability"]
         card['stability'] = originalStability * (
@@ -50,7 +48,8 @@ def FSRS(card, grade):
             (11 - card['difficulty']) *
             originalStability**-w[9] *
             (math.exp(w[10] * (1 - card['retrievability'])) - 1) *
-            (w[15] if (grade == 2) else (w[16] if (grade == 4) else 1)) +
+            (w[15] if (grade == 2) else 1) *
+            (w[16] if (grade == 4) else 1) +
             1
         )
     else:
