@@ -22,7 +22,7 @@ class Flashcard {
 
 
 
-function TestDeck() {
+function TestDeck({mode}) {
     const { id } = useParams()
     const [cards, setCards] = useState([new Flashcard()])
     const [currentCardIndex, setCurrentCardIndex] = useState(0)
@@ -36,12 +36,19 @@ function TestDeck() {
     let navigate = useNavigate();
 
     useEffect(() => {
-        getDeck();
+        console.log(mode)
+        getDeck(mode);
     }, [])
 
-    const getDeck = async () => {
+    const getDeck = async (mode) => {
+        let baseUrl = '/api/deck'
+        if(mode === "test") {
+            baseUrl = `${baseUrl}/get-deck/${id}/`
+        } else if (mode === "review") {
+            baseUrl = `${baseUrl}/get-deck-for-review/${id}/`
+        }
         const res = await api
-        .get(`/api/deck/get-deck/${id}/`)
+        .get(baseUrl)
         .then(res => res.data)
         .then(data => {
             setCards(data.flashcards)
@@ -64,29 +71,32 @@ function TestDeck() {
         });
     }
 
-    const handleGradeSubmit = (event) => {
+    const showNextCard = (event) => {
         event.preventDefault();
-        const data = new FormData(event.currentTarget);
-
-        switch (data.get('grade')) {
-            case "forgot":
-                updateCard(cards[currentCardIndex].id, "forgot");
-                break;
-            case "hard":
-                updateCard(cards[currentCardIndex].id, "hard");
-                break;
-            case "good":
-                updateCard(cards[currentCardIndex].id, "good");
-                break;
-            case "easy":
-                updateCard(cards[currentCardIndex].id, "easy");
-                break;
-            default:
-                setGradeError(true);
-                return;
+        if(mode === "review") {
+            const data = new FormData(event.currentTarget);
+    
+            switch (data.get('grade')) {
+                case "forgot":
+                    updateCard(cards[currentCardIndex].id, "forgot");
+                    break;
+                case "hard":
+                    updateCard(cards[currentCardIndex].id, "hard");
+                    break;
+                case "good":
+                    updateCard(cards[currentCardIndex].id, "good");
+                    break;
+                case "easy":
+                    updateCard(cards[currentCardIndex].id, "easy");
+                    break;
+                default:
+                    setGradeError(true);
+                    return;
+            }
+            
+            setGradeError(false);
         }
-        
-        setGradeError(false);
+
         setSlideDirection('right');
         setTriggerSlide(false);
 
@@ -128,30 +138,33 @@ function TestDeck() {
                             <Typography component={'span'} variant="h5" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center',  }}>
                                 {cards[currentCardIndex].definition}
                             </Typography>
-                            <Typography component={'span'}>
-                                <Box sx={{fontWeight: 'bold', marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
-                                    How well did you recall this?
-                                </Box>
-                            </Typography>
-                            <form id="gradeForm" onSubmit={handleGradeSubmit}>
-                                <FormControl error={gradeError}>
-                                    <RadioGroup row name="grade">
-                                        <FormControlLabel value="forgot" control={<Radio color="error"/>} label="Forgot" />
-                                        <FormControlLabel value="hard" control={<Radio color="warning"/>} label="Hard" />
-                                        <FormControlLabel value="good" control={<Radio color="info"/>} label="Good" />
-                                        <FormControlLabel value="easy" control={<Radio color="success"/>} label="Easy" />
-                                    </RadioGroup>
-                                    {gradeError && <FormHelperText sx={{display: 'flex', justifyContent: 'center'}}>Please select a grade.</FormHelperText>}
-                                </FormControl>
-                            </form>
-                            <IconButton onClick={() => {setIsFlipped(!isFlipped)}}sx={{ width: 70, height: 70}}>
+                            {mode === "review" && 
+                                <form id="gradeForm" onSubmit={showNextCard}>
+                                    <Typography component={'span'}>
+                                        <Box sx={{display: 'flex', justifyContent: 'center', fontWeight: 'bold', marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
+                                            How well did you recall this?
+                                        </Box>
+                                    </Typography>
+                                    <FormControl error={gradeError}>
+                                        <RadioGroup row name="grade">
+                                            <FormControlLabel value="forgot" control={<Radio color="error"/>} label="Forgot" />
+                                            <FormControlLabel value="hard" control={<Radio color="warning"/>} label="Hard" />
+                                            <FormControlLabel value="good" control={<Radio color="info"/>} label="Good" />
+                                            <FormControlLabel value="easy" control={<Radio color="success"/>} label="Easy" />
+                                        </RadioGroup>
+                                        {gradeError && <FormHelperText sx={{display: 'flex', justifyContent: 'center'}}>Please select a grade.</FormHelperText>}
+                                    </FormControl>
+                                </form>
+                            }
+                            <IconButton onClick={() => {setIsFlipped(!isFlipped)}} sx={{ width: 70, height: 70}}>
                                 <SyncAlt sx={{ width: '100%', height: '100%' }}/>
                             </IconButton>
                         </Card>
                     </ReactCardFlip>
                 </div>
             </Slide>
-            {isFlipped && <Button sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
+            {isFlipped && mode === "review" && <Button sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
+            {isFlipped && mode === "test" && <Button sx={{position: 'absolute', bottom: 40}} variant="contained" onClick={showNextCard}>Next card</Button>}
             <Modal open={testFinished}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
@@ -163,10 +176,10 @@ function TestDeck() {
                         transform: 'translate(-50%, -50%)',
                         boxShadow: 24,
                         p: 4,}}>
-                    <Typography id="modal-modal-title" variant="h4" component="h2">Review Complete!</Typography>
+                    <Typography id="modal-modal-title" variant="h4" component="h2">{`${mode.charAt(0).toUpperCase() + mode.slice(1)} Complete!`}</Typography>
                     <img src={tick} alt="tick" style={{width: 150}}/>
                     <Button variant="contained" onClick={() => {setTestFinished(false); navigate(`/edit-deck/${id}`)}}>Edit deck</Button>
-                    <Button variant="outlined" onClick={() => {setTestFinished(false); navigate('/decks')}}>Return to decks</Button>
+                    <Button variant="outlined" onClick={() => {setTestFinished(false); navigate('/decks')}}>View all decks</Button>
                 </Card>
             </Modal>
             <Modal open={exitTest}>

@@ -1,12 +1,12 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Alert} from "@mui/material";
+import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Alert, Badge} from "@mui/material";
 import "../styles/Layout.css";
 import { Edit, Delete } from "@mui/icons-material";
 import api from "../api";
 import { Link, useNavigate } from "react-router-dom";
 
-function DeckCard({id, title, numOfCards, onTest, onEdit, onDelete}) {
+function DeckCard({id, title, numOfCards, numOfCardsToReview, onTest, onReview, onEdit, onDelete}) {
     return (
         
             <Card id = {id} sx={{ p: 3, boxShadow: 4 }}>
@@ -20,6 +20,12 @@ function DeckCard({id, title, numOfCards, onTest, onEdit, onDelete}) {
                         <Typography>
                             {numOfCards > 1 ? numOfCards + " cards" : "1 card"}
                         </Typography>
+                        {
+                            numOfCardsToReview > 0 &&
+                            <Badge badgeContent={numOfCardsToReview} color="warning">
+                                <Button variant="contained" color="secondary" onClick={() => onReview(id)}>Review</Button>
+                            </Badge>
+                        }
                         <Button variant="contained" onClick={() => onTest(id)}>Test</Button>
                         <IconButton onClick={() => onEdit(id)}><Edit/></IconButton>
                         <IconButton onClick={() => onDelete(id, title, numOfCards)}><Delete/></IconButton>
@@ -63,6 +69,10 @@ function Decks() {
         navigate(`/test/${id}`)
     }
 
+    const reviewDeck = async (id) => {
+        navigate(`/review/${id}`)
+    }
+
     const deleteDeck = async (id) => {
         const res = await api
         .delete(`/api/deck/delete-deck/${id}/`)
@@ -104,7 +114,7 @@ function Decks() {
                 <ul className="flashcard-list">
                     {decks.map(deck => (
                         <li key={deck.id}>
-                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} onTest={testDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
+                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onTest={testDeck} onReview={reviewDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
                         </li>
                     ))}
                 </ul>

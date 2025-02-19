@@ -27,4 +27,5 @@ urlpatterns = [
     path("api/deck/edit-deck/<id>/", views.editDeck),
     path("api/deck/delete-deck/<id>/", views.editDeck),
     path("api/test/<id>/update-card/", views.updateFlashcard),
+    path("api/deck/get-deck-for-review/<id>/", views.getDeckToReview),
 ]

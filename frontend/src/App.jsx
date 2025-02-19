@@ -30,7 +30,8 @@ function App() {
             <Route path="/decks" element={<Decks />} />
             <Route path="/edit-deck/:id" element={<CreateAndEditDeck mode="edit"/>} />
           </Route>
-          <Route path="/test/:id" element={<ProtectedRoute><TestDeck/></ProtectedRoute>} />
+          <Route path="/test/:id" element={<ProtectedRoute><TestDeck mode="test"/></ProtectedRoute>} />
+          <Route path="/review/:id" element={<ProtectedRoute><TestDeck mode="review"/></ProtectedRoute>} />
           <Route path="/logout" element={<Logout />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<ResgisterAndLogout />} />

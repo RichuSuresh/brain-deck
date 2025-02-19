@@ -6,6 +6,7 @@ from .serializers import DeckSerializer, FlashcardUpateSerializer, DeckUpdateSer
 from rest_framework.decorators import api_view
 from firebase_admin import auth, initialize_app, credentials, firestore
 from google.cloud.firestore_v1 import aggregation
+from google.cloud.firestore_v1.base_query import FieldFilter, Or
 from .FSRS import *
 
 # Create your views here.
@@ -33,7 +34,7 @@ def createDeck(request):
 
         flashcards_ref = deck.collection('flashcards')
         for flashcard in validData['flashcards']:
-            flashcards_ref.add(flashcard)
+            flashcards_ref.add({'term': flashcard['term'], 'definition': flashcard['definition'], 'nextInterval': None})
 
         return Response({'message': 'Data received successfully', 'data': {'deckId': deck.id}}, status=status.HTTP_200_OK)
     except auth.InvalidIdTokenError:
@@ -69,7 +70,7 @@ def editDeck(request, id):
             numberOfCards = deck.get().to_dict()['numberOfCards']
             batch.update(deck, {'numberOfCards': numberOfCards + len(newCards) - len(deletedCards)})
             for card in newCards:
-                batch.set(originalFlashcards.document(), card)
+                batch.set(originalFlashcards.document(), {'term': card['term'], 'definition': card['definition'], 'nextInterval': None})
             
             for id, card in updatedCards.items():
                 batch.update(originalFlashcards.document(id), card)
@@ -100,18 +101,32 @@ def getAllDecks(request):
         decoded_token = auth.verify_id_token(token)
         uid = decoded_token['uid']
 
-        doc_ref = db.collection('users').document(uid).collection('decks').stream()
-        decks = []
-        for doc in doc_ref:
-            deckDict = doc.to_dict()
-            decks.append({'id': doc.id, 'title': deckDict['title'], 'numberOfCards': deckDict['numberOfCards']})
+        today = datetime.now(timezone.utc)
 
-        return Response(decks, status=status.HTTP_200_OK)
+        decks_ref =  db.collection('users').document(uid).collection('decks')
+        decks = decks_ref.stream()
+        response = []
+        for deck in decks:
+            query = decks_ref.document(deck.id).collection('flashcards').where(filter=Or(
+                [
+                    FieldFilter("nextInterval", "<=", today),
+                    FieldFilter("nextInterval", "==", None)
+                ]
+            ))
+            aggregate_query = aggregation.AggregationQuery(query)
+            aggregate_query.count(alias="all")
+            results = aggregate_query.get()
+            numOfCardsToReview = results[0][0].value
+
+            deckDict = deck.to_dict()
+            response.append({'id': deck.id, 'title': deckDict['title'], 'numberOfCards': deckDict['numberOfCards'], 'numberOfCardsToReview': numOfCardsToReview})
+
+        return Response(response, status=status.HTTP_200_OK)
     except auth.InvalidIdTokenError:
         return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['GET'])
-def getDecksToReview(request):
+def getDeckToReview(request, id):
     auth_header = request.headers['Authorization']
     if not auth_header or not auth_header.startswith('Bearer '):
         return Response({'message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -121,13 +136,36 @@ def getDecksToReview(request):
         decoded_token = auth.verify_id_token(token)
         uid = decoded_token['uid']
 
-        doc_ref = db.collection('users').document(uid).collection('decks').stream()
-        decks = []
-        for doc in doc_ref:
-            deckDict = doc.to_dict()
-            decks.append({'id': doc.id, 'title': deckDict['title'], 'numberOfCards': deckDict['numberOfCards']})    
+        deck = db.collection('users').document(uid).collection('decks').document(id)
+        if(not deck.get().exists):
+            return Response({'message': 'Deck could not be found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        today = datetime.now(timezone.utc)
+        flashcards =  deck.collection('flashcards').where(filter=Or(
+            [
+                FieldFilter("nextInterval", "<=", today),
+                FieldFilter("nextInterval", "==", None)
+            ]
+        ))
+        deck = deck.get().to_dict()
+        deck = {'title': deck['title'], 'flashcards': []}
+        # query = decks_ref.document(deck.id).collection('flashcards')
+        # today = datetime.now(timezone.utc)
+        # query = db.collection_group('flashcards').where(filter=FieldFilter("uid", "==", uid)).where(
+        #     filter=Or(
+        #         [
+        #             FieldFilter("nextInterval", "<=", today),
+        #             FieldFilter("nextInterval", "==", None)
+        #         ]
+        #     )
+        # )
+        flashcards = flashcards.stream()
+        for flashcard in flashcards:
+            id = flashcard.id
+            flashcard = flashcard.to_dict()
+            deck['flashcards'].append({'id': id, 'term': flashcard['term'], 'definition': flashcard['definition']})
 
-        return Response(decks, status=status.HTTP_200_OK)
+        return Response(deck, status=status.HTTP_200_OK)
     except auth.InvalidIdTokenError:
         return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -147,7 +185,7 @@ def getDeck(request, id):
             return Response({'message': 'Deck could not be found.'}, status=status.HTTP_404_NOT_FOUND)
         
         deck = deck_ref.get().to_dict()
-        deck = {'title': deck['title'], 'numberOfCards': deck['numberOfCards'], 'flashcards': []}
+        deck = {'title': deck['title'], 'flashcards': []}
 
         flashcards = deck_ref.collection('flashcards').stream()
         for flashcard in flashcards:
@@ -184,9 +222,6 @@ def updateFlashcard(request, id):
         if not flashcard.get().exists:
             return Response({'message': 'Flashcard could not be found.'}, status=status.HTTP_404_NOT_FOUND)
         
-        # for i in range(len(flashcards)):
-        #     if flashcards[i]['id'] == validData['id']:
-        #         flashcards[i] = FSRS(flashcards[i], validData['grade'])
         fsrsData = FSRS(flashcard.get().to_dict(), validData['grade'])
         flashcard.update(fsrsData)
 
