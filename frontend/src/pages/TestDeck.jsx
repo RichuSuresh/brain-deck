@@ -13,8 +13,8 @@ import ReactCardFlip from "react-card-flip";
 import { SyncAlt } from "@mui/icons-material";
 
 class Flashcard {
-    constructor(id, term, definition) {
-        this.id = id
+    constructor(serverId, term, definition) {
+        this.id = serverId
         this.term = term
         this.definition = definition
     };
@@ -60,7 +60,6 @@ function TestDeck() {
         const res = await api
         .patch(`/api/test/${id}/update-card/`, {id: cardId, grade: grade})
         .catch(err => {
-            console.log(err);
             alert(err);
         });
     }

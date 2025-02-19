@@ -57,8 +57,8 @@ def FSRS(card, grade):
         card['stability'] = w[11] * (card['difficulty']**-w[12]) * (((originalStability + 1)**w[13]) - 1) * math.exp(w[14] * (1 - card['retrievability']))
     
 
-    nextInterval = (card['stability'] / FACTOR) * ((REQUESTED_RETENTION**(1/DECAY))-1)
-    print(nextInterval)
+    nextInterval = min(3650, (card['stability'] / FACTOR) * ((REQUESTED_RETENTION**(1/DECAY))-1))
+
     nextInterval = today + timedelta(days=nextInterval)
     card['nextInterval'] = nextInterval
     card['lastReview'] = today

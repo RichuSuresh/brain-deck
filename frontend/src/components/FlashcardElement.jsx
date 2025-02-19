@@ -17,7 +17,7 @@ export default function FlashcardElement({card, disableDelete, onDelete}) {
     }
     
     return (
-        <Card id = {card.id} sx={{ flexGrow: 1, p: 3, boxShadow: 4 }}>
+        <Card id = {card.clientId} sx={{ flexGrow: 1, p: 3, boxShadow: 4 }}>
             <Grid2 container spacing={2}>
                 <Grid2 sx={{flexGrow: 1}}>
                     <TextField
@@ -48,7 +48,7 @@ export default function FlashcardElement({card, disableDelete, onDelete}) {
                     />
                 </Grid2>
                 <Grid2>
-                    <IconButton  disabled={disableDelete} sx={{justifyContent: 'center'}} size="small" onClick={() => onDelete(card.id)}>
+                    <IconButton  disabled={disableDelete} sx={{justifyContent: 'center'}} size="small" onClick={() => onDelete(card.clientId)}>
                         <Delete fontSize="inherit"/>
                     </IconButton>
                 </Grid2>

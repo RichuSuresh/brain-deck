@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
 import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card } from "@mui/material";
 import "../styles/Layout.css";
@@ -10,8 +10,9 @@ import { useNavigate, useParams } from "react-router-dom";
 import tick from '../assets/tick.svg';
 
 class Flashcard {
-    constructor(id = uuid(), term = "", definition = "") {
-        this.id = id
+    constructor(clientId = uuid(), serverId = undefined, term = "", definition = "") {
+        this.clientId = clientId
+        this.serverId = serverId
         this.term = term
         this.definition = definition
         this.termError = false
@@ -32,15 +33,15 @@ class Flashcard {
 }
 
 function CreateAndEditDeck({mode}) {
-    const { currentUser } = useAuth()
     const { id } = useParams()
-    const [cards, setCards] = React.useState([new Flashcard()])
-    const [title, setTitle] = React.useState("")
-    const [titleError, setTitleError] = React.useState(false)
-    const [titleErrorMessage, setTitleErrorMessage] = React.useState('')
-    const [generalErrorMessage, setGeneralErrorMessage] = React.useState('')
-    const [displayGeneralErrorMessage, setDisplayGeneralErrorMessage] = React.useState(false)
-    const [showModal, setShowModal] = React.useState(false);
+    const [cards, setCards] = useState([new Flashcard()])
+    const originalDeck = useRef(new Map())
+    const [title, setTitle] = useState("")
+    const [titleError, setTitleError] = useState(false)
+    const [titleErrorMessage, setTitleErrorMessage] = useState('')
+    const [generalErrorMessage, setGeneralErrorMessage] = useState('')
+    const [displayGeneralErrorMessage, setDisplayGeneralErrorMessage] = useState(false)
+    const [showModal, setShowModal] = useState(false);
 
     let navigate = useNavigate();
 
@@ -61,7 +62,7 @@ function CreateAndEditDeck({mode}) {
     const deleteCard = (id) => {
         setCards(
             cards.filter(card =>
-              card.id !== id
+              card.clientId !== id
             )
         );
     }
@@ -74,17 +75,20 @@ function CreateAndEditDeck({mode}) {
     }
 
     const getDeck = async () => {
+        const originalDeckMap = new Map();
+        originalDeckMap.set('flashcards', new Map());
         const res = await api
         .get(`/api/deck/get-deck/${id}/`)
         .then(res => res.data)
         .then(data => {
-            setCards(data.flashcards)
-            var cards = []
-            data.flashcards.forEach(card => {
-                console.log(card);
-                cards.push(new Flashcard(card.id, card.term, card.definition))
+            const cards = data.flashcards.map(card => {
+                const flashcard = new Flashcard(undefined, card.id, card.term, card.definition);
+                originalDeckMap.get('flashcards').set(flashcard.serverId, new Flashcard(undefined, card.id, card.term, card.definition));
+                return flashcard;
             });
+            originalDeckMap.set('title', data.title)
             setCards(cards)
+            originalDeck.current = originalDeckMap
             setTitle(data.title)
         })
         .catch(err => {
@@ -92,9 +96,8 @@ function CreateAndEditDeck({mode}) {
         });
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
+    const validateCards = () => {
+        
         var isValid = true;
         if(cards.length === 0) {
             setDisplayGeneralErrorMessage(true);
@@ -131,12 +134,7 @@ function CreateAndEditDeck({mode}) {
         });
 
         setCards(validatedCards);
-
-        if (isValid) {
-            createDeck();
-        }
-        return;
-
+        return isValid
     }
 
     const handleErrorResponse = (err) => {
@@ -161,57 +159,100 @@ function CreateAndEditDeck({mode}) {
                     }
                 }
             }
-        } else if (err.response){
+        } else if (err.response.data.message){
             errorMessage += "\n\n" + err.response.data.message;
-        } else {
+        } else if (err.message) {
             errorMessage += "\n\n" + err.message;
+        } else {
+            errorMessage += "\n\n" + err;
         }
         setGeneralErrorMessage(errorMessage);
     }
 
-    const createDeck = async () => {
-        const deck = {
-            title: title,
-            flashcards: cards.map(card => {
-                return {
-                    id: card.id,
-                    term: card.term,
-                    definition: card.definition
+    
+    const createPayload = () => {
+        if (mode === "create") {
+            return {
+                title: title,
+                flashcards: cards.map(card => {
+                    return {
+                        term: card.term,
+                        definition: card.definition
+                    }
+                })
+            }
+        } else if (mode === "edit") {
+            
+            const newCards = []
+            const updatedCards = {}
+            const otherCards = new Set()
+            const deletedCards = []
+            const originalTitle = originalDeck.current.get('title')
+            const originalFlashcards = originalDeck.current.get('flashcards')
+            cards.forEach(card => {
+                if(card.serverId === undefined) {
+                    newCards.push({
+                        term: card.term,
+                        definition: card.definition
+                    })
+                } else {
+                    otherCards.add(card.serverId)
+                    if(originalFlashcards.get(card.serverId).term !== card.term || originalFlashcards.get(card.serverId).definition !== card.definition) {
+                        updatedCards[card.serverId] = {
+                            term: card.term,
+                            definition: card.definition
+                        }
+                    }
                 }
-            })
+            });
+
+            originalFlashcards.forEach((_, key) => {
+                if(!otherCards.has(key)) {
+                    deletedCards.push(key)
+                }
+            });
+            return {
+                title: title === originalTitle ? undefined : title,
+                newFlashcards: newCards,
+                updatedFlashcards: updatedCards,
+                deletedFlashcards: deletedCards,
+            }
+        }
+    }
+
+    const submitDeck = async (e) => {
+        e.preventDefault();
+
+        if (!validateCards()) {
+            return;
         }
 
+        const request = createPayload();
         if(mode === "create") {
-            const res = await api.post("/api/deck/create-deck/", deck).then(res => {
+            const res = await api.post("/api/deck/create-deck/", request).then(res => {
                 navigate(`/edit-deck/${res.data.data.deckId}`);
                 setShowModal(true);
             }).catch(err => {
                 handleErrorResponse(err);
             });
         } else if (mode === "edit") {
-            const res = await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
-                if (res.status === 200) {
-                    setShowModal(true);
-                } else {
-                    alert("Failed to save changes");
-                }
+            const res = await api.patch(`/api/deck/edit-deck/${id}/`, request).then(res => {
+                setShowModal(true);
+                getDeck();
             }).catch(err => {
                 handleErrorResponse(err);
             });
         }
     }
 
-    const createAndTest = async () => {
-        const deck = {
-            title: title,
-            flashcards: cards.map(card => {
-                return {
-                    id: card.id,
-                    term: card.term,
-                    definition: card.definition
-                }
-            })
+    const submitAndTest = async () => {
+
+        if(!validateCards()) {
+            return;
         }
+
+        const deck = createPayload();
+
 
         if(mode === "create") {
             const res = await api.post("/api/deck/create-deck/", deck).then(res => {
@@ -237,8 +278,8 @@ function CreateAndEditDeck({mode}) {
             <div className="page-header">
                 <Typography variant="h4">{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
                 <Box sx={{display: 'flex', alignItems: 'center', gap:2}}>
-                    <Button variant="outlined" startIcon={mode === "create" ? <Add /> : <Done />} onClick={handleSubmit}>{mode === "create" ? "Create Deck" : "Save"}</Button>
-                    <Button variant="contained" onClick={createAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
+                    <Button variant="outlined" startIcon={mode === "create" ? <Add /> : <Done />} onClick={submitDeck}>{mode === "create" ? "Create Deck" : "Save"}</Button>
+                    <Button variant="contained" onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
                 </Box>
             </div>
             <Collapse in={displayGeneralErrorMessage}>
@@ -248,7 +289,7 @@ function CreateAndEditDeck({mode}) {
             <div>
                 <ol className="flashcard-list">
                     {cards.map(card => (
-                        <li key={card.id}>
+                        <li key={card.clientId}>
                             <FlashcardElement card={card} onDelete={deleteCard} disableDelete={cards.length === 1}/>
                         </li>
                     ))}

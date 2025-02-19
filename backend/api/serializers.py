@@ -5,7 +5,7 @@ def gradeValidation(value):
         raise serializers.ValidationError("Invalid grade")
     
 class FlashcardSerializer(serializers.Serializer):
-    id = serializers.CharField(required=True)
+    id = serializers.CharField(required=False)
     term = serializers.CharField(required=True)
     definition = serializers.CharField(required=True)
 
@@ -16,6 +16,12 @@ class DeckSerializer(serializers.Serializer):
 class FlashcardUpateSerializer(serializers.Serializer):
     id = serializers.CharField(required=True)
     grade = serializers.CharField(validators=[gradeValidation])
+
+class DeckUpdateSerializer(serializers.Serializer):
+    title = serializers.CharField(required=False)
+    newFlashcards = serializers.ListField(child=FlashcardSerializer(), allow_empty=True)
+    updatedFlashcards = serializers.DictField(child=FlashcardSerializer(), allow_empty=True)
+    deletedFlashcards = serializers.ListField(child=serializers.CharField(), allow_empty=True)
 
 
 
