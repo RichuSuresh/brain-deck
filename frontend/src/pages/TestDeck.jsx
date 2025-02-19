@@ -194,7 +194,7 @@ function TestDeck({mode}) {
                         transform: 'translate(-50%, -50%)',
                         boxShadow: 24,
                         p: 4,}}>
-                    <Typography id="modal-modal-title" variant="h4" component="h2">End test?</Typography>
+                    <Typography id="modal-modal-title" variant="h4" component="h2">{`End ${mode.charAt(0).toUpperCase() + mode.slice(1)}?`}</Typography>
                     <Typography id="modal-modal-title" variant="h6" component="h2">{`Only ${cards.length - currentCardIndex} more card${cards.length - currentCardIndex === 1 ? '' : 's'} left, you can do it!`}</Typography>
                     <Box sx={{display: 'flex', gap: 2}}>
                         <Button variant="contained" onClick={() => {setExitTest(false)}}>keep going</Button>

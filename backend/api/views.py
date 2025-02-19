@@ -126,6 +126,42 @@ def getAllDecks(request):
         return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['GET'])
+def getAllDecksToReview(request):
+    auth_header = request.headers['Authorization']
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return Response({'message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    token = auth_header.split(' ')[1]
+    try:
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token['uid']
+
+        today = datetime.now(timezone.utc)
+
+        decks_ref =  db.collection('users').document(uid).collection('decks')
+        decks = decks_ref.stream()
+        response = []
+        for deck in decks:
+            query = decks_ref.document(deck.id).collection('flashcards').where(filter=Or(
+                [
+                    FieldFilter("nextInterval", "<=", today),
+                    FieldFilter("nextInterval", "==", None)
+                ]
+            ))
+            aggregate_query = aggregation.AggregationQuery(query)
+            aggregate_query.count(alias="all")
+            results = aggregate_query.get()
+            numOfCardsToReview = results[0][0].value
+
+            deckDict = deck.to_dict()
+            if(numOfCardsToReview > 0):
+                response.append({'id': deck.id, 'title': deckDict['title'], 'numberOfCardsToReview': numOfCardsToReview})
+
+        return Response(response, status=status.HTTP_200_OK)
+    except auth.InvalidIdTokenError:
+        return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['GET'])
 def getDeckToReview(request, id):
     auth_header = request.headers['Authorization']
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -149,16 +185,7 @@ def getDeckToReview(request, id):
         ))
         deck = deck.get().to_dict()
         deck = {'title': deck['title'], 'flashcards': []}
-        # query = decks_ref.document(deck.id).collection('flashcards')
-        # today = datetime.now(timezone.utc)
-        # query = db.collection_group('flashcards').where(filter=FieldFilter("uid", "==", uid)).where(
-        #     filter=Or(
-        #         [
-        #             FieldFilter("nextInterval", "<=", today),
-        #             FieldFilter("nextInterval", "==", None)
-        #         ]
-        #     )
-        # )
+
         flashcards = flashcards.stream()
         for flashcard in flashcards:
             id = flashcard.id

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useAuth } from "../components/AuthProvider";
 import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card } from "@mui/material";
 import "../styles/Layout.css";
 import { Add, Done } from "@mui/icons-material";
