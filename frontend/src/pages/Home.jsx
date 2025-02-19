@@ -1,7 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
 import Layout from "../components/Layout";
-import { Box, Button, Card, Divider, Grid2, Toolbar, Typography } from "@mui/material";
+import { Box, Button, Card, Divider, Grid2, Skeleton, Toolbar, Typography } from "@mui/material";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
@@ -29,7 +29,7 @@ function DeckCard({id, title, numOfCardsToReview, onReview}) {
 
 function Home() {
     const { currentUser } = useAuth()
-    const [decks, setDecks] = React.useState([])
+    const [decks, setDecks] = useState(null)
     let navigate = useNavigate();
 
     useEffect(() => {
@@ -76,19 +76,46 @@ function Home() {
                     <Divider sx={{ flexGrow: 1, bgcolor: 'rgba(0, 0, 0, 0.2)' }} />
                 </Box>
             </Typography>
-            <ul className="flashcard-list">
-                {decks.map(deck => (
-                    <li key={deck.id}>
-                        <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onReview={reviewDeck} />
-                    </li>
-                ))}
-            </ul>
-            {decks.length === 0 &&
-                <Typography variant="h6">
-                    <Box sx={{color:'rgb(102, 102, 102)'}}>
-                        You have no pending reviews. Hooray!
-                    </Box>
-                </Typography>
+            {decks ? (
+                    <div>
+                        <ul className="flashcard-list">
+                            {decks.map(deck => (
+                                <li key={deck.id}>
+                                    <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onReview={reviewDeck} />
+                                </li>
+                            ))}
+                        </ul>
+                        {decks.length === 0 &&
+                            <Typography variant="h6">
+                                <Box sx={{color:'rgb(102, 102, 102)'}}>
+                                    You have no pending reviews. Hooray!
+                                </Box>
+                            </Typography>
+                        }
+
+                    </div>
+                ) : (
+                    <div>
+                        <ul className="flashcard-list">
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <DeckCard />
+                                </Skeleton>
+                            </li>
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <DeckCard />
+                                </Skeleton>
+                            </li>
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <DeckCard />
+                                </Skeleton>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                )
             }
         </div>
 

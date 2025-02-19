@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, FormHelperText } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, FormHelperText, CircularProgress } from "@mui/material";
 import "../styles/Layout.css";
 import { Add, Close, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -32,6 +32,7 @@ function TestDeck({mode}) {
     const [slideDirection, setSlideDirection] = useState('left');
     const [testFinished, setTestFinished] = useState(false);
     const [exitTest, setExitTest] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     let navigate = useNavigate();
 
@@ -41,6 +42,7 @@ function TestDeck({mode}) {
     }, [])
 
     const getDeck = async (mode) => {
+        setIsLoading(true)
         let baseUrl = '/api/deck'
         if(mode === "test") {
             baseUrl = `${baseUrl}/get-deck/${id}/`
@@ -57,7 +59,7 @@ function TestDeck({mode}) {
                 cards.push(new Flashcard(card.id, card.term, card.definition))
             });
             setCards(cards)
-        })
+        }).then(() => setIsLoading(false))
         .catch(err => {
             alert(err);
         });
@@ -112,11 +114,17 @@ function TestDeck({mode}) {
         }
     }
 
-    return (
-        <div className="test-screen">
-            <IconButton onClick={() => {setExitTest(true)}}sx={{position: 'absolute', top: 10, right: 10, width: 50, height: 50}}>
-                <Close sx={{ width: '100%', height: '100%' }}/>
-            </IconButton>
+    const loadingScreen = () => {
+        return (
+            <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: 20}}>
+                <Typography variant="h4">Getting your flashcards ready...</Typography>
+                <CircularProgress size={100}/>
+            </div>
+        )
+    }
+
+    const showContent = () => {
+        return <>
             <Slide direction={slideDirection} in={triggerSlide} mountOnEnter unmountOnExit>
                 <div>
                     <ReactCardFlip isFlipped={isFlipped}>
@@ -202,6 +210,15 @@ function TestDeck({mode}) {
                     </Box>
                 </Card>
             </Modal>
+        </>
+    }
+
+    return (
+        <div className="test-screen">
+            <IconButton onClick={() => {setExitTest(true)}}sx={{position: 'absolute', top: 10, right: 10, width: 50, height: 50}}>
+                <Close sx={{ width: '100%', height: '100%' }}/>
+            </IconButton>
+            {isLoading ? loadingScreen() : showContent()}
         </div>
     );
 }

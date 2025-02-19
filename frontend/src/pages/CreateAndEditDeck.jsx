@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, Skeleton } from "@mui/material";
 import "../styles/Layout.css";
 import { Add, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -33,7 +33,7 @@ class Flashcard {
 
 function CreateAndEditDeck({mode}) {
     const { id } = useParams()
-    const [cards, setCards] = useState([new Flashcard()])
+    const [cards, setCards] = useState(mode === "create" ? [new Flashcard()] : null)
     const originalDeck = useRef(new Map())
     const [title, setTitle] = useState("")
     const [titleError, setTitleError] = useState(false)
@@ -285,16 +285,40 @@ function CreateAndEditDeck({mode}) {
                 <Alert sx={{mb: 2, whiteSpace: 'pre-line'}} severity="error" onClose={() => {setDisplayGeneralErrorMessage(false)}}>{generalErrorMessage}</Alert>
             </Collapse>
             <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleError ? titleError : false} helperText={titleErrorMessage}/>
-            <div>
-                <ol className="flashcard-list">
-                    {cards.map(card => (
-                        <li key={card.clientId}>
-                            <FlashcardElement card={card} onDelete={deleteCard} disableDelete={cards.length === 1}/>
-                        </li>
-                    ))}
-                </ol>
-                <Button variant="contained" startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
-            </div>
+            {cards ? (
+                    <div>
+                        <ol className="flashcard-list">
+                            {cards.map(card => (
+                                <li key={card.clientId}>
+                                    <FlashcardElement card={card} onDelete={deleteCard} disableDelete={cards.length === 1}/>
+                                </li>
+                            ))}
+                        </ol>
+                        <Button variant="contained" startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
+                    </div>
+                ) : (
+                    <div>
+                        <ol className="flashcard-list">
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <FlashcardElement card={new Flashcard()}/>
+                                </Skeleton>
+                            </li>
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <FlashcardElement card={new Flashcard()}/>
+                                </Skeleton>
+                            </li>
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <FlashcardElement card={new Flashcard()}/>
+                                </Skeleton>
+                            </li>
+                            
+                        </ol>
+                    </div>
+                )
+            }
             <Modal open={showModal}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',

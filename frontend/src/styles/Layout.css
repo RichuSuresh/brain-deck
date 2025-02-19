@@ -20,8 +20,12 @@ html, body {
     margin-bottom: 20px;
 }
 
+.flashcard-list {
+    padding: 0;
+}
 .flashcard-list li{
     margin-bottom: 25px;
+    list-style: none;
 }
 
 .test-screen {

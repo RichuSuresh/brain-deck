@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Alert, Badge} from "@mui/material";
+import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Alert, Badge, Skeleton} from "@mui/material";
 import "../styles/Layout.css";
 import { Edit, Delete } from "@mui/icons-material";
 import api from "../api";
@@ -38,7 +38,7 @@ function DeckCard({id, title, numOfCards, numOfCardsToReview, onTest, onReview, 
 
 function Decks() {
     const { currentUser } = useAuth()
-    const [decks, setDecks] = React.useState([])
+    const [decks, setDecks] = React.useState(null)
     const [showConfirmDelete, setConfirmDelete] = React.useState(false);
     const [selectedDeck, setSelectedDeck] = React.useState(null);
     const [deleteSuccessMessage, setDeleteSuccessMessage] = React.useState('');
@@ -110,16 +110,43 @@ function Decks() {
             <Collapse in={deleteErrorMessage !== ''}>
                 <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setDeleteErrorMessage('')}}>{deleteErrorMessage}</Alert>
             </Collapse>
-            <div>
-                <ul className="flashcard-list">
-                    {decks.map(deck => (
-                        <li key={deck.id}>
-                            <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onTest={testDeck} onReview={reviewDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
-                        </li>
-                    ))}
-                </ul>
-                {decks.length === 0 && noDecks()}
-            </div>
+            {decks ? (
+                    <div>
+                        <ul className="flashcard-list">
+                            {decks.map(deck => (
+                                <li key={deck.id}>
+                                    <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onTest={testDeck} onReview={reviewDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
+                                </li>
+                            ))}
+                        </ul>
+                        {decks.length === 0 && noDecks()}
+                    </div>
+                ) : (
+                    <div>
+                        <ul className="flashcard-list">
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <DeckCard />
+                                </Skeleton>
+                            </li>
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <DeckCard />
+                                </Skeleton>
+                            </li>
+                            <li>
+                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                                    <DeckCard />
+                                </Skeleton>
+                            </li>
+                            
+                        </ul>
+                    </div>
+                )
+            }
+            {/* <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                <DeckCard />
+            </Skeleton> */}
             <Modal open={showConfirmDelete}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
