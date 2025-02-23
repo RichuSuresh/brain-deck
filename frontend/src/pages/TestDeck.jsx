@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, FormHelperText, CircularProgress } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, FormHelperText, CircularProgress, Snackbar } from "@mui/material";
 import "../styles/Layout.css";
 import { Add, Close, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -33,6 +33,7 @@ function TestDeck({mode}) {
     const [testFinished, setTestFinished] = useState(false);
     const [exitTest, setExitTest] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState('');
 
     let navigate = useNavigate();
 
@@ -58,47 +59,69 @@ function TestDeck({mode}) {
             data.flashcards.forEach(card => {
                 cards.push(new Flashcard(card.id, card.term, card.definition))
             });
-            setCards(cards)
-        }).then(() => setIsLoading(false))
+            setCards(cards);
+            setIsLoading(false)
+        })
         .catch(err => {
-            alert(err);
-        });
+            let errResponse = "Some errors occurred whilst processing your request... \n\n";
+            if(err.response.status === 404) {
+                setErrorMessage(errResponse + err.response.data.message);
+            } else {
+                setErrorMessage(errResponse + err.message);
+            }
+        })
     }
 
     const updateCard = async (cardId, grade) => {
         const res = await api
-        .patch(`/api/test/${id}/update-card/`, {id: cardId, grade: grade})
+        .patch(`/api/test/${id}/update-card/`, {id: cardId, grade: grade}).then(res => {
+            showNextCard();
+        })
         .catch(err => {
-            alert(err);
-        });
+            console.log(err)
+            let errResponse = "Some errors occurred whilst processing your request... \n\n";
+            if(err.response.status === 404) {
+                setErrorMessage(errResponse + err.response.data.message);
+            } else {
+                if(err.response.data.grade) {
+                    setErrorMessage(errResponse + err.response.data.grade[0]);
+                } else {
+                    setErrorMessage(errResponse + err.message);
+                }
+            }
+        })
     }
 
-    const showNextCard = (event) => {
+    const handleNext = (event) => {
         event.preventDefault();
-        if(mode === "review") {
-            const data = new FormData(event.currentTarget);
-    
-            switch (data.get('grade')) {
-                case "forgot":
-                    updateCard(cards[currentCardIndex].id, "forgot");
-                    break;
-                case "hard":
-                    updateCard(cards[currentCardIndex].id, "hard");
-                    break;
-                case "good":
-                    updateCard(cards[currentCardIndex].id, "good");
-                    break;
-                case "easy":
-                    updateCard(cards[currentCardIndex].id, "easy");
-                    break;
-                default:
-                    setGradeError(true);
-                    return;
-            }
-            
-            setGradeError(false);
+
+        if(mode === "test"){
+            showNextCard();
+            return;
         }
 
+        const data = new FormData(event.currentTarget);
+        switch (data.get('grade')) {
+            case "forgot":
+                updateCard(cards[currentCardIndex].id, "forgot");
+                break;
+            case "hard":
+                updateCard(cards[currentCardIndex].id, "hard");
+                break;
+            case "good":
+                updateCard(cards[currentCardIndex].id, "good");
+                break;
+            case "easy":
+                updateCard(cards[currentCardIndex].id, "easy");
+                break;
+            default:
+                setGradeError(true);
+                return;
+        }
+        setGradeError(false);
+    }
+
+    const showNextCard = () => {
         setSlideDirection('right');
         setTriggerSlide(false);
 
@@ -147,7 +170,7 @@ function TestDeck({mode}) {
                                 {cards[currentCardIndex].definition}
                             </Typography>
                             {mode === "review" && 
-                                <form id="gradeForm" onSubmit={showNextCard}>
+                                <form id="gradeForm" onSubmit={handleNext}>
                                     <Typography component={'span'}>
                                         <Box sx={{display: 'flex', justifyContent: 'center', fontWeight: 'bold', marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
                                             How well did you recall this?
@@ -172,7 +195,7 @@ function TestDeck({mode}) {
                 </div>
             </Slide>
             {isFlipped && mode === "review" && <Button sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
-            {isFlipped && mode === "test" && <Button sx={{position: 'absolute', bottom: 40}} variant="contained" onClick={showNextCard}>Next card</Button>}
+            {isFlipped && mode === "test" && <Button sx={{position: 'absolute', bottom: 40}} variant="contained" onClick={handleNext}>Next card</Button>}
             <Modal open={testFinished}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
@@ -218,6 +241,9 @@ function TestDeck({mode}) {
             <IconButton onClick={() => {setExitTest(true)}}sx={{position: 'absolute', top: 10, right: 10, width: 50, height: 50}}>
                 <Close sx={{ width: '100%', height: '100%' }}/>
             </IconButton>
+            <Snackbar open={errorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
+                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {errorMessage('')}}>{errorMessage}</Alert>
+            </Snackbar>
             {isLoading ? loadingScreen() : showContent()}
         </div>
     );

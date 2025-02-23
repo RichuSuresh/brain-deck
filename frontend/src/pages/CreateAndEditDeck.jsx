@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, Skeleton } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, Skeleton, Snackbar } from "@mui/material";
 import "../styles/Layout.css";
 import { Add, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
@@ -14,19 +14,15 @@ class Flashcard {
         this.serverId = serverId
         this.term = term
         this.definition = definition
-        this.termError = false
-        this.definitionError = false
         this.termErrorMessage = ""
         this.definitionErrorMessage = ""
     };
 
-    setTermError(state, termErrorMessage = "") {
-        this.termError = state
+    setTermError(termErrorMessage = "") {
         this.termErrorMessage = termErrorMessage
     }
 
-    setDefinitionError(state, definitionErrorMessage = "") {
-        this.definitionError = state
+    setDefinitionError(definitionErrorMessage = "") {
         this.definitionErrorMessage = definitionErrorMessage
     }
 }
@@ -36,10 +32,8 @@ function CreateAndEditDeck({mode}) {
     const [cards, setCards] = useState(mode === "create" ? [new Flashcard()] : null)
     const originalDeck = useRef(new Map())
     const [title, setTitle] = useState("")
-    const [titleError, setTitleError] = useState(false)
-    const [titleErrorMessage, setTitleErrorMessage] = useState('')
-    const [generalErrorMessage, setGeneralErrorMessage] = useState('')
-    const [displayGeneralErrorMessage, setDisplayGeneralErrorMessage] = useState(false)
+    const [titleErrorMessage, setTitleError] = useState('')
+    const [generalErrorMessage, setGeneralError] = useState('')
     const [showModal, setShowModal] = useState(false);
 
     let navigate = useNavigate();
@@ -51,10 +45,8 @@ function CreateAndEditDeck({mode}) {
         if(mode === "create"){
             setCards([new Flashcard()])
             setTitle("")
-            setTitleError(false)
-            setTitleErrorMessage("")
-            setGeneralErrorMessage("")
-            setDisplayGeneralErrorMessage(false)
+            setTitleError("")
+            setGeneralError("")
         }
     }, [mode])
 
@@ -99,35 +91,31 @@ function CreateAndEditDeck({mode}) {
         
         var isValid = true;
         if(cards.length === 0) {
-            setDisplayGeneralErrorMessage(true);
-            setGeneralErrorMessage("Please add at least one flashcard");
+            setGeneralError("Please add at least one flashcard");
             isValid = false;
         } else {
-            setDisplayGeneralErrorMessage(false);
-            setGeneralErrorMessage("");
+            setGeneralError("");
         }
         if(title === "") {
-            setTitleError(true);
-            setTitleErrorMessage("Title cannot be empty");
+            setTitleError("Title cannot be empty");
             isValid = false;
         } else {
-            setTitleError(false);
-            setTitleErrorMessage("");
+            setTitleError("");
         }
 
         const validatedCards = cards.map(card => {
             if(card.term === "") {
-                card.setTermError(true, "Term cannot be empty");
+                card.setTermError("Term cannot be empty");
                 isValid = false;
             } else {
-                card.setTermError(false);
+                card.setTermError("");
             }
 
             if(card.definition === "") {
-                card.setDefinitionError(true, "Definition cannot be empty");
+                card.setDefinitionError("Definition cannot be empty");
                 isValid = false;
             } else {
-                card.setDefinitionError(false);
+                card.setDefinitionError("");
             }
             return card;
         });
@@ -137,7 +125,6 @@ function CreateAndEditDeck({mode}) {
     }
 
     const handleErrorResponse = (err) => {
-        setDisplayGeneralErrorMessage(true);
         var errorMessage = "Some errors occurred whilst processing your request... ";
         if (err.status === 400) {
             if(err.response.data.title) {
@@ -165,7 +152,7 @@ function CreateAndEditDeck({mode}) {
         } else {
             errorMessage += "\n\n" + err;
         }
-        setGeneralErrorMessage(errorMessage);
+        setGeneralError(errorMessage);
     }
 
     
@@ -281,10 +268,8 @@ function CreateAndEditDeck({mode}) {
                     <Button variant="contained" onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
                 </Box>
             </div>
-            <Collapse in={displayGeneralErrorMessage}>
-                <Alert sx={{mb: 2, whiteSpace: 'pre-line'}} severity="error" onClose={() => {setDisplayGeneralErrorMessage(false)}}>{generalErrorMessage}</Alert>
-            </Collapse>
-            <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleError ? titleError : false} helperText={titleErrorMessage}/>
+            
+            <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleErrorMessage !== ""} helperText={titleErrorMessage}/>
             {cards ? (
                     <div>
                         <ol className="flashcard-list">
@@ -336,6 +321,9 @@ function CreateAndEditDeck({mode}) {
                     <Button variant="outlined" onClick={() => navigate(`/decks`)}>View created Decks</Button>
                 </Card>
             </Modal>
+            <Snackbar sx={{width: '20%'}} open={generalErrorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setGeneralError('')}}>
+                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setGeneralError('')}}>{generalErrorMessage}</Alert>
+            </Snackbar>
         </div>
 
     );

@@ -28,7 +28,7 @@ export default function FlashcardElement({card, disableDelete, onDelete}) {
                         className="Term"
                         label="Term"
                         variant="standard"
-                        error={card.termError}
+                        error={card.termErrorMessage !== ""}
                         onChange={handleTermChange}
                         helperText={card.termErrorMessage}
                     />
@@ -42,7 +42,7 @@ export default function FlashcardElement({card, disableDelete, onDelete}) {
                         className="Definition"
                         label="Definition"
                         variant="standard"
-                        error={card.definitionError}
+                        error={card.definitionErrorMessage !== ""}
                         onChange={handleDefinitionChange}
                         helperText={card.definitionErrorMessage}
                     />

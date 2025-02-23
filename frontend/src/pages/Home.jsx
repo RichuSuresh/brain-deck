@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
 import Layout from "../components/Layout";
-import { Box, Button, Card, Divider, Grid2, Skeleton, Toolbar, Typography } from "@mui/material";
+import { Alert, Box, Button, Card, Divider, Grid2, Skeleton, Snackbar, Toolbar, Typography } from "@mui/material";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
@@ -30,6 +30,7 @@ function DeckCard({id, title, numOfCardsToReview, onReview}) {
 function Home() {
     const { currentUser } = useAuth()
     const [decks, setDecks] = useState(null)
+    const [errorMessage, setErrorMessage] = useState("")
     let navigate = useNavigate();
 
     useEffect(() => {
@@ -44,7 +45,7 @@ function Home() {
             setDecks(data)
         })
         .catch(err => {
-            alert(err);
+            setErrorMessage(`Some errors occurred whilst processing your request... \n\n${err.message}`);
         });
     }
 
@@ -117,6 +118,9 @@ function Home() {
                     </div>
                 )
             }
+            <Snackbar open={errorMessage !== ''} sx={{width: '20%'}} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000} onClose={() => {setErrorMessage('')}}>
+                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setErrorMessage('')}}>{errorMessage}</Alert>
+            </Snackbar>
         </div>
 
     );

@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../components/AuthProvider";
-import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Alert, Badge, Skeleton} from "@mui/material";
+import { Box, Typography, Button, Card, Grid2, IconButton, Modal, Collapse, Alert, Badge, Skeleton, TextField, InputAdornment, Snackbar} from "@mui/material";
 import "../styles/Layout.css";
-import { Edit, Delete } from "@mui/icons-material";
+import { Edit, Delete, Search } from "@mui/icons-material";
 import api from "../api";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -38,11 +38,12 @@ function DeckCard({id, title, numOfCards, numOfCardsToReview, onTest, onReview, 
 
 function Decks() {
     const { currentUser } = useAuth()
-    const [decks, setDecks] = React.useState(null)
-    const [showConfirmDelete, setConfirmDelete] = React.useState(false);
-    const [selectedDeck, setSelectedDeck] = React.useState(null);
-    const [deleteSuccessMessage, setDeleteSuccessMessage] = React.useState('');
-    const [deleteErrorMessage, setDeleteErrorMessage] = React.useState('');
+    const [decks, setDecks] = useState(null)
+    const [showConfirmDelete, setConfirmDelete] = useState(false);
+    const [selectedDeck, setSelectedDeck] = useState(null);
+    const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
+    const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
     let navigate = useNavigate();
 
     useEffect(() => {
@@ -99,28 +100,70 @@ function Decks() {
         )
     }
 
+    const filteredDecks = decks?.filter(deck => deck.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const showDecks = () => {
+        if (filteredDecks && filteredDecks.length > 0) {
+            return (
+                <div>
+                    {(searchQuery.length > 0) && filteredDecks.length > 1 && 
+                        <Typography variant="h6">
+                            <Box sx={{marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
+                            {filteredDecks.length} decks found
+                            </Box>
+                        </Typography>
+                    }
+                    <ul className="flashcard-list">
+                        {filteredDecks.map(deck => (
+                            <li key={deck.id}>
+                                <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onTest={testDeck} onReview={reviewDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
+                            </li>
+                        ))}
+                    </ul>
+                    {decks.length === 0 && noDecks()}
+                </div>
+            )
+        } else {
+            return (
+                <Typography variant="h6">
+                    <Box sx={{marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
+                        {`No decks found for query "${searchQuery}"`}
+                    </Box>
+                </Typography>
+            )
+        }
+    }
+
     return (
         <div>
             <div className="page-header">
                 <Typography variant="h4">My Flashcard Decks</Typography>
             </div>
-            <Collapse in={deleteSuccessMessage !== ''}>
+            <Snackbar open={deleteSuccessMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setDeleteSuccessMessage('')}}>
                 <Alert severity="success" onClose={() => {setDeleteSuccessMessage('')}}>{deleteSuccessMessage}</Alert>
-            </Collapse>
-            <Collapse in={deleteErrorMessage !== ''}>
+            </Snackbar>
+            <Snackbar open={deleteErrorMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000} onClose={() => {setDeleteErrorMessage('')}}>
                 <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setDeleteErrorMessage('')}}>{deleteErrorMessage}</Alert>
-            </Collapse>
+            </Snackbar>
+            <TextField
+                id="search"
+                placeholder="What deck are you looking for?"
+                variant="outlined"
+                sx={{width: '50%', marginBottom: 1}}
+                size="small"
+                slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Search />
+                        </InputAdornment>
+                      ),
+                    },
+                }}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
             {decks ? (
-                    <div>
-                        <ul className="flashcard-list">
-                            {decks.map(deck => (
-                                <li key={deck.id}>
-                                    <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onTest={testDeck} onReview={reviewDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
-                                </li>
-                            ))}
-                        </ul>
-                        {decks.length === 0 && noDecks()}
-                    </div>
+                    showDecks()
                 ) : (
                     <div>
                         <ul className="flashcard-list">
@@ -144,9 +187,6 @@ function Decks() {
                     </div>
                 )
             }
-            {/* <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
-                <DeckCard />
-            </Skeleton> */}
             <Modal open={showConfirmDelete}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
