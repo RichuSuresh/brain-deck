@@ -50,3 +50,14 @@ html, body {
     width: 900px;
     min-height: 600px;
 }
+
+.dropzone {
+    border: 2px dashed #ccc;
+    padding: 100px;
+    text-align: center;
+    cursor: pointer;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    border-radius: 8px;
+    border-width: 4px;
+}

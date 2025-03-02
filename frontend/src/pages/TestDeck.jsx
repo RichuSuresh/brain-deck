@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useAuth } from "../components/AuthProvider";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, IconButton, Grid2, Slide, Icon, FormControl, FormLabel, RadioGroup, FormControlLabel, Radio, FormHelperText, CircularProgress, Snackbar } from "@mui/material";
+import { Box, Typography, Button, Alert, Modal, Card, IconButton, Slide, FormControl, RadioGroup, FormControlLabel, Radio, FormHelperText, CircularProgress, Snackbar } from "@mui/material";
 import "../styles/Layout.css";
-import { Add, Close, Done } from "@mui/icons-material";
-import { v4 as uuid } from "uuid";
-import FlashcardElement from "../components/FlashcardElement";
+import { Close} from "@mui/icons-material";
 import api from "../api";
 import { useNavigate, useParams } from "react-router-dom";
 import tick from '../assets/tick.svg';
@@ -194,7 +191,7 @@ function TestDeck({mode}) {
                     </ReactCardFlip>
                 </div>
             </Slide>
-            {isFlipped && mode === "review" && <Button sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
+            {isFlipped && mode === "review" && <Button loading sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
             {isFlipped && mode === "test" && <Button sx={{position: 'absolute', bottom: 40}} variant="contained" onClick={handleNext}>Next card</Button>}
             <Modal open={testFinished}>
                 <Card sx={{display: 'flex',

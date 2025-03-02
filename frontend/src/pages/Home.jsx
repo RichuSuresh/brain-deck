@@ -4,6 +4,7 @@ import Layout from "../components/Layout";
 import { Alert, Box, Button, Card, Divider, Grid2, Skeleton, Snackbar, Toolbar, Typography } from "@mui/material";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
+import Dropzone from 'react-dropzone'
 
 function DeckCard({id, title, numOfCardsToReview, onReview}) {
     return (
@@ -53,6 +54,17 @@ function Home() {
         navigate(`/review/${id}`)
     }
 
+    const uploadFile = async (file) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        const res = await api
+        .post("/api/deck/generate/", formData)
+        .then(res => res.data)
+        .catch(err => {
+            setErrorMessage(`Some errors occurred whilst processing your request... \n\n${err.message}`);
+        });
+    }
+
     return (
         <div>
             <div className="page-header">
@@ -61,22 +73,32 @@ function Home() {
                 </Typography>
             </div>
             <h2>Hello {currentUser.email}</h2>
-            <Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ fontSize: 17, fontWeight: 'bold', color: 'rgb(83, 83, 83)', mr: 1 }}>
-                    Generate flashcard deck
-                    </Box>
-                    <Divider sx={{ flexGrow: 1, bgcolor: 'rgba(0, 0, 0, 0.2)' }} />
-                </Box>
-            </Typography>
-            <Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box sx={{ fontSize: 17, fontWeight: 'bold', color: 'rgb(83, 83, 83)', mr: 1 }}>
-                    Pending reviews
-                    </Box>
-                    <Divider sx={{ flexGrow: 1, bgcolor: 'rgba(0, 0, 0, 0.2)' }} />
-                </Box>
-            </Typography>
+            
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: 17, fontWeight: 'bold', color: 'rgb(83, 83, 83)', mr: 1 }}>
+                Generate flashcard deck
+                </Typography>
+                <Divider sx={{ flexGrow: 1, bgcolor: 'rgba(0, 0, 0, 0.2)' }} />
+            </Box>
+            <Dropzone onDrop={acceptedFiles => {uploadFile(acceptedFiles[0])}}>
+                {({getRootProps, getInputProps}) => (
+                    <section>
+                    <div  className="dropzone" {...getRootProps()}>
+                        <input {...getInputProps()} />
+                        <Typography sx={{ fontSize: 17, fontWeight: 'bold', color: 'rgb(83, 83, 83)', mr: 1 }}>
+                        Drag 'n' drop your notes here to generate flashcards
+                        </Typography>
+                    </div>
+                    </section>
+                )}
+            </Dropzone>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography sx={{ fontSize: 17, fontWeight: 'bold', color: 'rgb(83, 83, 83)', mr: 1 }}>
+                Pending reviews
+                </Typography>
+                <Divider sx={{ flexGrow: 1, bgcolor: 'rgba(0, 0, 0, 0.2)' }} />
+            </Box>
+            
             {decks ? (
                     <div>
                         <ul className="flashcard-list">

@@ -23,6 +23,9 @@ class DeckUpdateSerializer(serializers.Serializer):
     updatedFlashcards = serializers.DictField(child=FlashcardSerializer(), allow_empty=True)
     deletedFlashcards = serializers.ListField(child=serializers.CharField(), allow_empty=True)
 
+class FileSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
 
 
 

@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import DeckSerializer, FlashcardUpateSerializer, DeckUpdateSerializer
+from .serializers import DeckSerializer, FlashcardUpateSerializer, DeckUpdateSerializer, FileSerializer
 from rest_framework.decorators import api_view
 from firebase_admin import auth, initialize_app, credentials, firestore
 from google.cloud.firestore_v1 import aggregation
@@ -254,5 +254,27 @@ def updateFlashcard(request, id):
 
         return Response({'message': 'Data updated successfully'}, status=status.HTTP_200_OK)
         # doc_ref.update(request.data)
+    except auth.InvalidIdTokenError:
+        return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
+def generateDeck(request):
+    auth_header = request.headers['Authorization']
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return Response({'message': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    token = auth_header.split(' ')[1]
+    try:
+        auth.verify_id_token(token)
+        uploaded_file = request.FILES.get('file')
+        print(uploaded_file)
+        print(request.data)
+        serializer = FileSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        validData = serializer.validated_data
+        return Response({"message": "Data received successfully"}, status=status.HTTP_201_CREATED)
+        
     except auth.InvalidIdTokenError:
         return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
