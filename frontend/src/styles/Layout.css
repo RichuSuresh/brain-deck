@@ -52,12 +52,27 @@ html, body {
 }
 
 .dropzone {
+    display: flex;
     border: 2px dashed #ccc;
-    padding: 100px;
+    height: 200px;
     text-align: center;
-    cursor: pointer;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
     margin-bottom: 20px;
     margin-top: 10px;
     border-radius: 8px;
     border-width: 4px;
+}
+
+.file-preview {
+    position: relative;
+    display: flex;
+    align-items: center;
+    border-color: black;
+    max-width: 50px;
+    max-height: 70px;
+    flex-direction: column;
+    margin-right: 20px;
 }

@@ -8,6 +8,7 @@ from firebase_admin import auth, initialize_app, credentials, firestore
 from google.cloud.firestore_v1 import aggregation
 from google.cloud.firestore_v1.base_query import FieldFilter, Or
 from .FSRS import *
+from .OllamaGenerate import generateFlashcardDeck
 
 # Create your views here.
 cred = credentials.Certificate("credentials.json")
@@ -266,15 +267,14 @@ def generateDeck(request):
     token = auth_header.split(' ')[1]
     try:
         auth.verify_id_token(token)
-        uploaded_file = request.FILES.get('file')
-        print(uploaded_file)
-        print(request.data)
         serializer = FileSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         validData = serializer.validated_data
-        return Response({"message": "Data received successfully"}, status=status.HTTP_201_CREATED)
+        deck = generateFlashcardDeck(validData['files'])
+        print(deck)
+        return Response(deck, status=status.HTTP_201_CREATED)
         
     except auth.InvalidIdTokenError:
         return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)

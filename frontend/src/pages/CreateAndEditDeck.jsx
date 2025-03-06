@@ -5,7 +5,7 @@ import { Add, Done } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import tick from '../assets/tick.svg';
 
 class Flashcard {
@@ -27,7 +27,7 @@ class Flashcard {
     }
 }
 
-function CreateAndEditDeck({mode}) {
+function CreateAndEditDeck({mode="create"}) {
     const { id } = useParams()
     const [cards, setCards] = useState(mode === "create" ? [new Flashcard()] : null)
     const originalDeck = useRef(new Map())
@@ -35,20 +35,31 @@ function CreateAndEditDeck({mode}) {
     const [titleErrorMessage, setTitleError] = useState('')
     const [generalErrorMessage, setGeneralError] = useState('')
     const [showModal, setShowModal] = useState(false);
-
+    
     let navigate = useNavigate();
+    const location = useLocation();
+    const { generatedDeck } = location.state || {};
 
     useEffect(() => {
         if(mode === "edit"){
             getDeck()
         }
         if(mode === "create"){
-            setCards([new Flashcard()])
-            setTitle("")
-            setTitleError("")
-            setGeneralError("")
+            if(generatedDeck !== null) {
+                setTitle(generatedDeck.title);
+                setCards(
+                    generatedDeck.flashcards.map(card => {
+                        return new Flashcard(undefined, card.id, card.term, card.definition)
+                    })
+                );
+            } else {
+                setCards([new Flashcard()]);
+                setTitle("");
+            }
+            setTitleError("");
+            setGeneralError("");
         }
-    }, [mode])
+    }, [mode, generatedDeck])
 
     const deleteCard = (id) => {
         setCards(
@@ -61,7 +72,7 @@ function CreateAndEditDeck({mode}) {
     const addCard = () => {
         setCards([
             ...cards,
-            new Flashcard()
+            new Flashcard(),
         ]);
     }
 
