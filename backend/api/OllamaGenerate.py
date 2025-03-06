@@ -31,21 +31,33 @@ Text: {context}."""
 
 reduce_template = """
 Context:
-You are an extremely novice person that wants to ask a robot (who knows all of the presented facts but cannot make assumptions from them) to expand your knowledge.
-You will be presented facts on many different topics but the key information is missing and you want to fill it in.
-Rather than "are" and "can" you ask "who", "what", "when", "where" and "why", since these give the most knowledge.
+You are a curious learner who wants to expand your knowledge using only the provided facts.
+You will be given a collection of facts on one or multiple topics, and your goal is to turn them into engaging, thought-provoking flashcards into a single deck.
 
-Objective:
-Your task is to transform each and every presented fact into flashcards in a single deck. Follow these guidelines:
-- Do not assume all facts belong to the same topic. Identify different subjects and generate a balanced amount of flashcards for each topic.
-- Each flashcard must have term and a definition, and they must not be empty.
-- The term must not be the answer to the definition.
-- The term must be a general non-specific question related to a fact, and the definition must answer the question like robot would in a detailed but succinct way.
-- Terms and definitions must not reference an image (such as a figure) or any other media that the user cannot see. The term and definition together should be self-contained.
-- **Self-Correction:** If a term or definition is ambiguous or incorrect, correct it based on the context provided in the text. Ensure that each flashcard accurately reflects the content, and use your own knowledge to verify its correctness.
-- **Quality Check:** Before finalizing a flashcard, ensure that both the term and the definition are relevant, precise, and clearly linked. If they appear confusing or unclear, revise them to improve their clarity.
-- Only create a flashcard if you have both the term and the phrase that can provide a valid, self-contained learning point.
-- The deck must not be empty.
+Each flashcard must have a term that is an open-ended question, and a definition that correctly answers the question.
+Do not assume all facts belong to the same topic. Identify different subjects and generate a balanced amount of flashcards for each topic.
+Do not create yes/no questions. Instead, ask "who," "what," "when," "where," or "why" questions that encourage deeper understanding.
+Only use the given facts—do not make assumptions or generate questions about missing information. If the fact does not provide enough context to form a meaningful question, skip it.
+The term should be broad enough to be useful for learning, rather than being overly specific or too obvious.
+The definition should concisely answer the question with relevant details from the provided facts.
+Ensure grammatical correctness and clarity in all flashcards.
+The deck must not be empty.
+
+Examples:
+Good questions:
+
+Question: What key factors contribute to the habitability of Tritus?
+
+Answer: Tritus has underground cave systems with stable temperatures and a breathable atmosphere, which may support human life.
+
+Question: Why is Lewy Body Dementia considered distinct from other forms of dementia?
+
+Answer: It involves the buildup of abnormal protein deposits in the brain, leading to cognitive and motor impairments.
+
+Bad flashcards (do not ask questions like these):
+
+Question: Is there a cave system on Tritus that could sustain human life? → (Yes/no question, too specific)
+Question: Can Lewy Body Dementia be classified as a type of dementia? → (Yes/no question, redundant)
 
 The deck must have a **title** that captures the main topic of the facts.
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, Button, Alert, Modal, Card, IconButton, Slide, FormControl, RadioGroup, FormControlLabel, Radio, FormHelperText, CircularProgress, Snackbar } from "@mui/material";
+import { Box, Typography, Button, Alert, Modal, Card, IconButton, Slide, FormControl, RadioGroup, FormControlLabel, Radio, FormHelperText, CircularProgress, Snackbar, Divider, Stack, Switch, FormGroup } from "@mui/material";
 import "../styles/Layout.css";
 import { Close} from "@mui/icons-material";
 import api from "../api";
@@ -31,6 +31,7 @@ function TestDeck({mode}) {
     const [exitTest, setExitTest] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [errorMessage, setErrorMessage] = useState('');
+    const [isAiMode, setIsAiMode] = useState(false);
 
     let navigate = useNavigate();
 
@@ -152,9 +153,11 @@ function TestDeck({mode}) {
                             <Typography variant="h6">
                                 {`${currentCardIndex + 1}/${cards.length}`}
                             </Typography>
-                            <Typography variant="h5" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
-                                {cards[currentCardIndex].term}
-                            </Typography>
+                            <Box sx={{ width: '85%', flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                <Typography variant="h5">
+                                    {cards[currentCardIndex].term}
+                                </Typography>
+                            </Box>
                             <IconButton onClick={() => {setIsFlipped(!isFlipped)}}sx={{ width: 70, height: 70}}>
                                 <SyncAlt sx={{ width: '100%', height: '100%' }}/>
                             </IconButton>
@@ -163,9 +166,12 @@ function TestDeck({mode}) {
                             <Typography component={'span'} variant="h6">
                                 {`${currentCardIndex + 1}/${cards.length}`}
                             </Typography>
-                            <Typography component={'span'} variant="h5" sx={{ flexGrow: 1, display: 'flex', alignItems: 'center',  }}>
-                                {cards[currentCardIndex].definition}
-                            </Typography>
+                            <Box sx={{ width: '85%', flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                <Typography variant="h5">
+                                    {cards[currentCardIndex].definition}
+                                </Typography>
+                            </Box>
+                            
                             {mode === "review" && 
                                 <form id="gradeForm" onSubmit={handleNext}>
                                     <Typography component={'span'}>
@@ -235,9 +241,18 @@ function TestDeck({mode}) {
 
     return (
         <div className="test-screen">
-            <IconButton onClick={() => {setExitTest(true)}}sx={{position: 'absolute', top: 10, right: 10, width: 50, height: 50}}>
-                <Close sx={{ width: '100%', height: '100%' }}/>
-            </IconButton>
+            <Stack direction="row"  spacing={2} sx={{position: 'absolute', top: 10, right: 10, justifyContent: 'center', alignItems: 'center'}}>
+                <FormGroup>
+                    <FormControlLabel
+                        control={<Switch onChange={(e) => {setIsAiMode(e.target.checked); console.log(isAiMode)}} color="primary" />}
+                        label="AI Evaluation mode"
+                        labelPlacement="start"
+                    />
+                </FormGroup>
+                <IconButton onClick={() => {setExitTest(true)}}sx={{width: 50, height: 50}}>
+                    <Close sx={{ width: '100%', height: '100%' }}/>
+                </IconButton>
+            </Stack>
             <Snackbar open={errorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
                 <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {errorMessage('')}}>{errorMessage}</Alert>
             </Snackbar>
