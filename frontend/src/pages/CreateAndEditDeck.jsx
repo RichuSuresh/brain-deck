@@ -43,6 +43,12 @@ function CreateAndEditDeck({mode="create"}) {
     const [retentionRateError, setRetentionRateError] = useState('');
     const [parametersError, setParametersError] = useState('');
 
+    const originalRetentionRate = useRef(retentionRate);
+    const originalParameters = useRef(parameters);
+
+    const defaultParameters = "0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621";
+    const defaultRetentionRate = 0.9;
+
     let navigate = useNavigate();
     const location = useLocation();
     const { generatedDeck } = location.state || {};
@@ -101,9 +107,15 @@ function CreateAndEditDeck({mode="create"}) {
                 return flashcard;
             });
             originalDeckMap.set('title', data.title)
+            originalDeckMap.set('retentionRate', data.retentionRate)
+            originalDeckMap.set('parameters', data.parameters.join(', '))
             setCards(cards)
             originalDeck.current = originalDeckMap
+            originalRetentionRate.current = data.retentionRate
+            originalParameters.current = data.parameters.join(', ')
             setTitle(data.title)
+            setRetentionRate(data.retentionRate)
+            setParameters(data.parameters.join(', '))
         })
         .catch(err => {
             alert(err);
@@ -147,6 +159,38 @@ function CreateAndEditDeck({mode="create"}) {
         return isValid
     }
 
+    const validateSettings = (retentionRate, parameters) => {
+        let settingsValid = true;
+        const retentionRateParsed = parseFloat(retentionRate);
+        const isValidRetentionRegex = /^\d+(\.\d+)?$/
+        if(retentionRate === "") {
+            setRetentionRateError("Retention rate cannot be empty and must be a number that is greater than 0 and less than 1");
+            settingsValid = false;
+        } else if(isValidRetentionRegex.test(retentionRate) === false || retentionRateParsed <= 0 || retentionRateParsed >= 1) {
+            setRetentionRateError("Retention rate must be a number that is greater than 0 and less than 1");
+            settingsValid = false;
+        } else {
+            setRetentionRateError('');
+            setRetentionRate(retentionRate);
+        }
+
+        const isValidParameterRegex = /^-?\d+(\.\d+)?$/
+        const parametersList = parameters.split(",").map(num => num.trim());
+        const parametersCheck = parametersList.every(num => isValidParameterRegex.test(num));
+
+        if(parameters === "" || !parametersCheck) {
+            setParametersError("Parameters must be a comma separated list of exactly 19 numbers");
+            settingsValid = false;
+        } else if (parametersList.length !== 19) {
+            setParametersError("You must enter a list of exactly 19 numbers for the parameters");
+            settingsValid = false;
+        } else {
+            setParametersError('');
+        }
+
+        return settingsValid
+    }
+
     const handleErrorResponse = (err) => {
         var errorMessage = "Some errors occurred whilst processing your request... ";
         if (err.status === 400) {
@@ -183,6 +227,8 @@ function CreateAndEditDeck({mode="create"}) {
         if (mode === "create") {
             return {
                 title: title,
+                retentionRate: retentionRate,
+                parameters: parameters.split(",").map(num => parseFloat(num)),
                 flashcards: cards.map(card => {
                     return {
                         term: card.term,
@@ -197,6 +243,8 @@ function CreateAndEditDeck({mode="create"}) {
             const otherCards = new Set()
             const deletedCards = []
             const originalTitle = originalDeck.current.get('title')
+            const originalRetentionRate = originalDeck.current.get('retentionRate')
+            const originalParameters = originalDeck.current.get('parameters')
             const originalFlashcards = originalDeck.current.get('flashcards')
             cards.forEach(card => {
                 if(card.serverId === undefined) {
@@ -225,6 +273,8 @@ function CreateAndEditDeck({mode="create"}) {
                 newFlashcards: newCards,
                 updatedFlashcards: updatedCards,
                 deletedFlashcards: deletedCards,
+                parameters: parameters === originalParameters ? undefined : parameters.split(",").map(num => parseFloat(num)),
+                retentionRate: retentionRate === originalRetentionRate ? undefined : retentionRate
             }
         }
     }
@@ -270,6 +320,7 @@ function CreateAndEditDeck({mode="create"}) {
         if(mode === "create") {
             const res = await api.post("/api/deck/create-deck/", deck).then(res => {
                 navigate(`/test/${res.data.data.deckId}`);
+                setSubmitLoading(false);
             }).catch(err => {
                 handleErrorResponse(err);
                 setSubmitLoading(false);
@@ -290,46 +341,25 @@ function CreateAndEditDeck({mode="create"}) {
     }
 
     const submitSettings = (retentionRate, parameters) => {
-        let settingsValid = true;
-        const retentionRateParsed = parseFloat(retentionRate);
-        if(isNaN(retentionRateParsed) || /^-?\d+(\.\d+)?$/.test(retentionRate) === false) {
-            setRetentionRateError("Retention rate must be a number between 0 and 1");
-            settingsValid = false;
-        } else if (retentionRateParsed < 0 || retentionRateParsed > 1) {
-            setRetentionRateError("Retention rate must be a number between 0 and 1");
-            settingsValid = false;
-        } else {
-            setRetentionRateError('');
-            setRetentionRate(retentionRate);
-        }
-
-        if(parameters === "") {
-            setParametersError("Parameters cannot be empty");
-            settingsValid = false;
-            return;
-        } else {
-            setParametersError('');
-        }
-
-        const parametersSplit = parameters.split(",").map(num => num.trim());
-        const parametersCheck = parametersSplit.every(num => /^-?\d+(\.\d+)?$/.test(num));;
-        console.log(parametersSplit)
-        console.log(parametersCheck)
-        
-        if(!parametersCheck) {
-            setParametersError("Parameters must be a comma separated list of numbers");
-            settingsValid = false;
-            return;
-        } else {
-            setParametersError('');
-        }
-
-        if(settingsValid) { 
-            setRetentionRate(retentionRate);
+        if(validateSettings(retentionRate, parameters)) { 
+            setRetentionRate(parseFloat(retentionRate));
             setParameters(parameters);
+            originalParameters.current = parameters;
+            originalRetentionRate.current = retentionRate;
             setOpenSettings(false);
             setMoreAnchorEl(null);
+            setParametersError('');
+            setRetentionRateError('');
         }
+    }
+
+    const handleCancelSettings = () => {
+        setRetentionRate(originalRetentionRate.current);
+        setParameters(originalParameters.current);
+        setOpenSettings(false);
+        setMoreAnchorEl(null);
+        setParametersError('');
+        setRetentionRateError('');
     }
 
     return (
@@ -346,7 +376,7 @@ function CreateAndEditDeck({mode="create"}) {
                 <Menu
                     anchorEl={moreAnchorEl}
                     open={moreAnchorEl !== null}
-                    onClose={() => {setMoreAnchorEl(null); setParametersError(''); setRetentionRateError('');}}
+                    onClose={() => setMoreAnchorEl(null)}
                 >
                     <MenuItem onClick={() => setOpenSettings(true)}>
                         <ListItemIcon>
@@ -421,7 +451,7 @@ function CreateAndEditDeck({mode="create"}) {
             </Snackbar>
             <Dialog 
                 open={openSettings}
-                onClose={() => setOpenSettings(false)}
+                onClose={() => {setOpenSettings(false); setParametersError(''); setRetentionRateError(''); setMoreAnchorEl(null);}}
                 slotProps={{
                     paper: {
                     component: 'form',
@@ -437,7 +467,7 @@ function CreateAndEditDeck({mode="create"}) {
                 }}
             >
                 <DialogTitle>Deck Settings</DialogTitle>
-                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3}}>
+                <DialogContent sx={{display: 'flex', flexDirection: 'column'}}>
                     <DialogContentText>
                         Adjust FSRS parameters below. Defaults work well - modify with caution!
                     </DialogContentText>
@@ -447,23 +477,27 @@ function CreateAndEditDeck({mode="create"}) {
                         label="Desired Retention Rate"
                         fullWidth
                         variant="standard"
-                        defaultValue={retentionRate}
+                        value={retentionRate}
+                        onChange={(e) => setRetentionRate(e.target.value)}
                         error={retentionRateError !== ""}
                         helperText={retentionRateError}
                     />
+                    <Button sx={{alignSelf: 'flex-end'}} onClick={() => setRetentionRate(defaultRetentionRate)}>Default</Button>
                     <TextField
                         required
                         name="fsrs-parameters"
                         label="FSRS parameters"
                         fullWidth
                         variant="standard"
-                        defaultValue={parameters}
+                        value={parameters}
+                        onChange={(e) => setParameters(e.target.value)}
                         error={parametersError !== ""}
                         helperText={parametersError}
                     />
+                    <Button sx={{alignSelf: 'flex-end'}} onClick={() => setParameters(defaultParameters)}>Default</Button>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => setOpenSettings(false)}>Cancel</Button>
+                    <Button onClick={() => handleCancelSettings()}>Cancel</Button>
                     <Button type="submit">Submit</Button>
                 </DialogActions>
             </Dialog>

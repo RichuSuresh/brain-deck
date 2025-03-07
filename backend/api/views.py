@@ -30,20 +30,20 @@ def createDeck(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         validData = serializer.validated_data
-        deck = db.collection('users').document(uid).collection('decks')
+        deck = db.collection('users').document(uid).collection('decks').document()
         batch = db.batch()
 
-        if "fsrsParameters" not in validData:
-            validData['fsrsParameters'] = getDefaultParameters()
+        if "parameters" not in validData:
+            validData['parameters'] = getDefaultParameters()
         
         if "retentionRate" not in validData:
             validData['retentionRate'] = getDefaultRetentionRate()
 
-        batch.set(deck.document(), {'title': validData['title'], 'numberOfCards': len(validData['flashcards']), 'fsrsParameters': validData['fsrsParameters'], 'retentionRate': validData['retentionRate']})
+        batch.set(deck, {'title': validData['title'], 'numberOfCards': len(validData['flashcards']), 'parameters': validData['parameters'], 'retentionRate': validData['retentionRate']})
 
         flashcards_ref = deck.collection('flashcards')
         for flashcard in validData['flashcards']:
-            batch.add(flashcards_ref, {'term': flashcard['term'], 'definition': flashcard['definition'], 'nextInterval': None})
+            batch.set(flashcards_ref.document(), {'term': flashcard['term'], 'definition': flashcard['definition'], 'nextInterval': None})
 
         batch.commit()
         return Response({'message': 'Data received successfully', 'data': {'deckId': deck.id}}, status=status.HTTP_200_OK)
@@ -91,8 +91,8 @@ def editDeck(request, id):
             if "title" in editDetails:
                 batch.update(deck, {'title': editDetails['title']})
             
-            if "fsrsParameters" in editDetails:
-                batch.update(deck, {'fsrsParameters': editDetails['fsrsParameters']})
+            if "parameters" in editDetails:
+                batch.update(deck, {'parameters': editDetails['parameters']})
             
             if "retentionRate" in editDetails:
                 batch.update(deck, {'retentionRate': editDetails['retentionRate']})
@@ -228,7 +228,7 @@ def getDeck(request, id):
             return Response({'message': 'Deck could not be found.'}, status=status.HTTP_404_NOT_FOUND)
         
         deck = deck_ref.get().to_dict()
-        deck = {'title': deck['title'], 'flashcards': []}
+        deck = {'title': deck['title'], 'flashcards': [], 'parameters': deck['parameters'], 'retentionRate': deck['retentionRate']}
 
         flashcards = deck_ref.collection('flashcards').stream()
         for flashcard in flashcards:
@@ -270,7 +270,9 @@ def updateFlashcard(request, id):
         if("nextInterval" in flashcardDict and flashcardDict["nextInterval"] != None):
             if(today < flashcardDict["nextInterval"]):
                 return Response({'message': 'Cannot review flashcard before next review date'}, status=status.HTTP_400_BAD_REQUEST)
-        fsrsData = FSRS(flashcard.get().to_dict(), validData['grade'])
+        
+        deck = deck.get().to_dict()
+        fsrsData = FSRS(flashcard.get().to_dict(), validData['grade'], deck['parameters'], deck['retentionRate'])
         flashcard.update(fsrsData)
 
         return Response({'message': 'Data updated successfully'}, status=status.HTTP_200_OK)

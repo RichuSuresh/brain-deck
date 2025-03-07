@@ -7,17 +7,17 @@ def getDefaultParameters():
 def getDefaultRetentionRate():
     return 0.9
 
-def FSRS(card, grade):
+def FSRS(card, grade, parameters, retentionRate):
     gradeDict = {
         "forgot": 1,
         "hard": 2,
         "good": 3,
         "easy": 4
     }
-    w = card['fsrsParameters']
+    w = parameters
     DECAY = -0.5
     FACTOR = 19/81
-    REQUESTED_RETENTION = card['requestedRetention']
+    REQUESTED_RETENTION = retentionRate
     grade = gradeDict[grade]
     today = datetime.now(timezone.utc)
     if "lastReview" not in card:
