@@ -169,7 +169,7 @@ function Decks() {
                 id="search"
                 placeholder="What deck are you looking for?"
                 variant="outlined"
-                sx={{width: '50%', marginBottom: 1}}
+                sx={{width: {xs: '100%', sm: '60%'}, marginBottom: 1}}
                 size="small"
                 slotProps={{
                     input: {
@@ -194,6 +194,7 @@ function Decks() {
                         top: '50%',
                         left: '50%',
                         maxWidth: 400,
+                        
                         transform: 'translate(-50%, -50%)',
                         boxShadow: 24,
                         p: 4,}}>

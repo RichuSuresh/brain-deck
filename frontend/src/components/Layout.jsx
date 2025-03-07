@@ -2,12 +2,29 @@ import React from "react";
 import { useState} from "react";
 import { Button, Toolbar, AppBar, Typography, Box, IconButton, Avatar, Tooltip, Menu, MenuItem, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { doSignOut } from "../../auth";
-import { LibraryAdd, Home, AutoAwesomeMotion } from "@mui/icons-material";
+import { LibraryAdd, Home, AutoAwesomeMotion, Menu as MenuIcon } from "@mui/icons-material";
 import "../styles/Layout.css";
 import { Outlet, Link } from "react-router-dom";
 
 export default function Layout() {
     const [anchorElUser, setAnchorElUser] = useState(null);
+    const [mobileOpen, setMobileOpen] = React.useState(false);
+    const [isClosing, setIsClosing] = React.useState(false);
+
+    const handleDrawerClose = () => {
+        setIsClosing(true);
+        setMobileOpen(false);
+    };
+
+    const handleDrawerTransitionEnd = () => {
+        setIsClosing(false);
+    };
+
+    const handleDrawerToggle = () => {
+        if (!isClosing) {
+        setMobileOpen(!mobileOpen);
+        }
+    };
     
     const handleOpenUserMenu = (event) => {
         setAnchorElUser(event.currentTarget);
@@ -15,10 +32,50 @@ export default function Layout() {
 
     const drawerWidth = 300
 
+    const drawer = (
+        <div>
+            <Toolbar />
+                <List>
+                    <ListItem key="home" disablePadding>
+                        <ListItemButton component={Link} to="/">
+                            <ListItemIcon>
+                                <Home />
+                            </ListItemIcon>
+                            <ListItemText primary="Home" />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem key="my-flashcards" disablePadding>
+                        <ListItemButton component={Link} to="/create">
+                            <ListItemIcon>
+                                <LibraryAdd />
+                            </ListItemIcon>
+                            <ListItemText primary="Create a new deck" />
+                        </ListItemButton>
+                    </ListItem>
+                    <ListItem key="edit-my-flashcards" disablePadding>
+                        <ListItemButton component={Link} to="/decks">
+                            <ListItemIcon>
+                                <AutoAwesomeMotion />
+                            </ListItemIcon>
+                            <ListItemText primary="My decks" />
+                        </ListItemButton>
+                    </ListItem>
+                </List>
+        </div>
+    )
     return (
-        <div className="layout">
+        <Box  sx={{ display: 'flex' }}>
             <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, boxShadow: 0 }}>
                 <Toolbar>
+                <IconButton
+                    color="inherit"
+                    aria-label="open drawer"
+                    edge="start"
+                    onClick={handleDrawerToggle}
+                    sx={{ mr: 2, display: { sm: 'none' } }}
+                >
+                    <MenuIcon />
+                </IconButton>
                     <Typography variant="h4"
                         sx={{ mr: 2}}
                     >
@@ -48,48 +105,42 @@ export default function Layout() {
                     </Box>
                 </Toolbar>
             </AppBar>
-            
-            <Drawer
-                sx={{
-                    width: drawerWidth,
-                    flexShrink: 0,
-                    marginRight: 5,
-                    [`& .MuiDrawer-paper`]: { width: drawerWidth, boxSizing: 'border-box', boxShadow: 9, },
-                }}
-                variant="permanent"
-            >
+            <Box className="content2" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+                <Drawer
+                    variant="temporary"
+                    open={mobileOpen}
+                    onTransitionEnd={handleDrawerTransitionEnd}
+                    onClose={handleDrawerClose}
+                    sx={{
+                        display: { xs: 'block', sm: 'none' },
+                        xs: 'block', sm: 'none',
+                        '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, },
+                    }}
+                    slotProps={{
+                        root: {
+                        keepMounted: true, // Better open performance on mobile.
+                        },
+                    }}
+                    >
+                    {drawer}
+                </Drawer>
+                <Drawer
+                    variant="permanent"
+                    sx={{
+                    display: { xs: 'none', sm: 'block'},
+                    '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, boxShadow: 9 },
+                    }}
+                    open
+                >
+                    {drawer}
+                </Drawer>
+            </Box>
+            <Box sx={{ position: 'relative', flexGrow: 1, p: 3, maxWidth: { sm: '60%' } }}>
                 <Toolbar />
-                <List>
-                    <ListItem key="home" disablePadding>
-                        <ListItemButton component={Link} to="/">
-                            <ListItemIcon>
-                                <Home />
-                            </ListItemIcon>
-                            <ListItemText primary="Home" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem key="my-flashcards" disablePadding>
-                        <ListItemButton component={Link} to="/create">
-                            <ListItemIcon>
-                                <LibraryAdd />
-                            </ListItemIcon>
-                            <ListItemText primary="Create a new deck" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem key="edit-my-flashcards" disablePadding>
-                        <ListItemButton component={Link} to="/decks">
-                            <ListItemIcon>
-                                <AutoAwesomeMotion />
-                            </ListItemIcon>
-                            <ListItemText primary="My decks" />
-                        </ListItemButton>
-                    </ListItem>
-                </List>
-            </Drawer>
-            <div className="content">
                 <Outlet />
-            </div>
-        </div>
+            </Box>
+        </Box>
+        
     );
 }
 
