@@ -139,12 +139,7 @@ function Decks() {
             <div className="page-header">
                 <Typography variant="h4">My Flashcard Decks</Typography>
             </div>
-            <Snackbar open={deleteSuccessMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setDeleteSuccessMessage('')}}>
-                <Alert severity="success" onClose={() => {setDeleteSuccessMessage('')}}>{deleteSuccessMessage}</Alert>
-            </Snackbar>
-            <Snackbar open={deleteErrorMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000} onClose={() => {setDeleteErrorMessage('')}}>
-                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setDeleteErrorMessage('')}}>{deleteErrorMessage}</Alert>
-            </Snackbar>
+            
             <TextField
                 id="search"
                 placeholder="What deck are you looking for?"
@@ -200,13 +195,35 @@ function Decks() {
                         boxShadow: 24,
                         p: 4,}}>
                     <Typography id="modal-modal-title" variant="h4" component="h2">Delete deck</Typography>
-                    <Typography id="modal-modal-title" variant="h6" component="h2">{`Are you sure you want to delete "${selectedDeck?.title}" which has ${selectedDeck?.numOfCards} ${selectedDeck?.numOfCards > 1 ? "cards" : "card"}? This action cannot be undone`}</Typography>
+                    <Typography id="modal-modal-title" variant="h6" component="h2">
+                        Are you sure you want to delete{" "}
+                        <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
+                            "{selectedDeck?.title}"
+                        </span>
+                        {" "}
+                        which has {selectedDeck?.numOfCards} {selectedDeck?.numOfCards > 1 ? "cards" : "card"}?
+                        This action cannot be undone.
+                    </Typography>
                     <Box sx={{display: 'flex', gap: 2}}>
                         <Button variant="outlined" onClick={() => {setConfirmDelete(false)}}>Cancel</Button>
                         <Button variant="contained" color="error" onClick={() => {deleteDeck(selectedDeck?.id); setConfirmDelete(false)}}>Delete</Button>
                     </Box>
                 </Card>
             </Modal>
+            <Snackbar sx={{maxWidth: '20%'}} open={deleteSuccessMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setDeleteSuccessMessage('')}}>
+                <Alert severity="success" onClose={() => {setDeleteSuccessMessage('')}}>
+                    <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
+                        "{deleteSuccessMessage}"
+                    </span>
+                </Alert>
+            </Snackbar>
+            <Snackbar sx={{maxWidth: '20%'}} open={deleteErrorMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000} onClose={() => {setDeleteErrorMessage('')}}>
+                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setDeleteErrorMessage('')}}>
+                    <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
+                        "{deleteSuccessMessage}"
+                    </span>
+                </Alert>
+            </Snackbar>
         </div>
 
     );

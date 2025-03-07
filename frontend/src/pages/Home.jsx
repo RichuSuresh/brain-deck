@@ -111,7 +111,6 @@ function Home() {
             setGeneratedDeck(res.data);
             setFiles([]);
             setErrorMessage("");
-            console.log(res.data);
             return res.data;
         })
         .catch(err => {
@@ -127,15 +126,14 @@ function Home() {
     return (
         <div>
             <div className="page-header">
-                <Typography variant="h4" sx={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>      
+                <Typography variant="h4" sx={{fontWeight: 'bold'}}>      
                     Home
                 </Typography>
             </div>
-            <h2>Hello {currentUser.email}</h2>
-            
+            <Typography variant="h5" sx={{mb: 2}}>Welcome {currentUser.email}</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography sx={{ fontSize: 17, fontWeight: 'bold', color: 'rgb(83, 83, 83)', mr: 1 }}>
-                Generate flashcard deck
+                Generate a flashcard deck
                 </Typography>
                 <Divider sx={{ flexGrow: 1, bgcolor: 'rgba(0, 0, 0, 0.2)' }} />
             </Box>

@@ -30,13 +30,22 @@ def createDeck(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
         validData = serializer.validated_data
-        deck = db.collection('users').document(uid).collection('decks').document()
-        deck.set({'title': validData['title'], 'numberOfCards': len(validData['flashcards'])})
+        deck = db.collection('users').document(uid).collection('decks')
+        batch = db.batch()
+
+        if "fsrsParameters" not in validData:
+            validData['fsrsParameters'] = getDefaultParameters()
+        
+        if "retentionRate" not in validData:
+            validData['retentionRate'] = getDefaultRetentionRate()
+
+        batch.set(deck.document(), {'title': validData['title'], 'numberOfCards': len(validData['flashcards']), 'fsrsParameters': validData['fsrsParameters'], 'retentionRate': validData['retentionRate']})
 
         flashcards_ref = deck.collection('flashcards')
         for flashcard in validData['flashcards']:
-            flashcards_ref.add({'term': flashcard['term'], 'definition': flashcard['definition'], 'nextInterval': None})
+            batch.add(flashcards_ref, {'term': flashcard['term'], 'definition': flashcard['definition'], 'nextInterval': None})
 
+        batch.commit()
         return Response({'message': 'Data received successfully', 'data': {'deckId': deck.id}}, status=status.HTTP_200_OK)
     except auth.InvalidIdTokenError:
         return Response({'message': 'Invalid authentication token. please try logging in again.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -81,6 +90,12 @@ def editDeck(request, id):
             
             if "title" in editDetails:
                 batch.update(deck, {'title': editDetails['title']})
+            
+            if "fsrsParameters" in editDetails:
+                batch.update(deck, {'fsrsParameters': editDetails['fsrsParameters']})
+            
+            if "retentionRate" in editDetails:
+                batch.update(deck, {'retentionRate': editDetails['retentionRate']})
 
             batch.commit()
 
@@ -250,6 +265,11 @@ def updateFlashcard(request, id):
         if not flashcard.get().exists:
             return Response({'message': 'Flashcard could not be found.'}, status=status.HTTP_404_NOT_FOUND)
         
+        flashcardDict = flashcard.get().to_dict()
+        today = datetime.now(timezone.utc)
+        if("nextInterval" in flashcardDict and flashcardDict["nextInterval"] != None):
+            if(today < flashcardDict["nextInterval"]):
+                return Response({'message': 'Cannot review flashcard before next review date'}, status=status.HTTP_400_BAD_REQUEST)
         fsrsData = FSRS(flashcard.get().to_dict(), validData['grade'])
         flashcard.update(fsrsData)
 
@@ -273,7 +293,6 @@ def generateDeck(request):
         
         validData = serializer.validated_data
         deck = generateFlashcardDeck(validData['files'])
-        print(deck)
         return Response(deck, status=status.HTTP_201_CREATED)
         
     except auth.InvalidIdTokenError:

@@ -12,6 +12,8 @@ class FlashcardSerializer(serializers.Serializer):
 class DeckSerializer(serializers.Serializer):
     title = serializers.CharField(required=True)
     flashcards = serializers.ListField(child=FlashcardSerializer(), allow_empty=False)
+    fsrsParameters = serializers.ListField(child=serializers.FloatField(), required=False, min_length=19, max_length=19)
+    retentionRate = serializers.FloatField(required=False)
 
 class FlashcardUpateSerializer(serializers.Serializer):
     id = serializers.CharField(required=True)
@@ -22,6 +24,8 @@ class DeckUpdateSerializer(serializers.Serializer):
     newFlashcards = serializers.ListField(child=FlashcardSerializer(), allow_empty=True)
     updatedFlashcards = serializers.DictField(child=FlashcardSerializer(), allow_empty=True)
     deletedFlashcards = serializers.ListField(child=serializers.CharField(), allow_empty=True)
+    fsrsParameters = serializers.ListField(child=serializers.FloatField(), required=False, min_length=19, max_length=19)
+    retentionRate = serializers.FloatField(required=False)
 
 class FileSerializer(serializers.Serializer):
     files = serializers.ListField(child=serializers.FileField(), allow_empty=False)

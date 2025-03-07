@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, Skeleton, Snackbar } from "@mui/material";
+import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, Skeleton, Snackbar, Stack, IconButton, Menu, MenuItem, ListItemIcon, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
 import "../styles/Layout.css";
-import { Add, Done } from "@mui/icons-material";
+import { Add, Delete, DeleteOutline, Done, MoreVert, Settings } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
@@ -35,7 +35,14 @@ function CreateAndEditDeck({mode="create"}) {
     const [titleErrorMessage, setTitleError] = useState('')
     const [generalErrorMessage, setGeneralError] = useState('')
     const [showModal, setShowModal] = useState(false);
-    
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [moreAnchorEl, setMoreAnchorEl] = useState(null);
+    const [openSettings, setOpenSettings] = useState(false);
+    const [retentionRate, setRetentionRate] = useState(0.9);
+    const [parameters, setParameters] = useState("0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621");
+    const [retentionRateError, setRetentionRateError] = useState('');
+    const [parametersError, setParametersError] = useState('');
+
     let navigate = useNavigate();
     const location = useLocation();
     const { generatedDeck } = location.state || {};
@@ -45,7 +52,7 @@ function CreateAndEditDeck({mode="create"}) {
             getDeck()
         }
         if(mode === "create"){
-            if(generatedDeck !== null) {
+            if(generatedDeck !== undefined) {
                 setTitle(generatedDeck.title);
                 setCards(
                     generatedDeck.flashcards.map(card => {
@@ -67,6 +74,11 @@ function CreateAndEditDeck({mode="create"}) {
               card.clientId !== id
             )
         );
+    }
+
+    const copyCard = (id) => {
+        const card = cards.find(card => card.clientId === id)
+        setCards([...cards, new Flashcard(undefined, undefined, card.term, card.definition)])
     }
 
     const addCard = () => {
@@ -219,7 +231,7 @@ function CreateAndEditDeck({mode="create"}) {
 
     const submitDeck = async (e) => {
         e.preventDefault();
-
+        setSubmitLoading(true);
         if (!validateCards()) {
             return;
         }
@@ -229,21 +241,25 @@ function CreateAndEditDeck({mode="create"}) {
             const res = await api.post("/api/deck/create-deck/", request).then(res => {
                 navigate(`/edit-deck/${res.data.data.deckId}`);
                 setShowModal(true);
+                setSubmitLoading(false);
             }).catch(err => {
                 handleErrorResponse(err);
+                setSubmitLoading(false);
             });
         } else if (mode === "edit") {
             const res = await api.patch(`/api/deck/edit-deck/${id}/`, request).then(res => {
                 setShowModal(true);
                 getDeck();
+                setSubmitLoading(false);
             }).catch(err => {
                 handleErrorResponse(err);
+                setSubmitLoading(false);
             });
         }
     }
 
     const submitAndTest = async () => {
-
+        setSubmitLoading(true);
         if(!validateCards()) {
             return;
         }
@@ -256,6 +272,7 @@ function CreateAndEditDeck({mode="create"}) {
                 navigate(`/test/${res.data.data.deckId}`);
             }).catch(err => {
                 handleErrorResponse(err);
+                setSubmitLoading(false);
             });
         } else if (mode === "edit") {
             const res = await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
@@ -264,9 +281,54 @@ function CreateAndEditDeck({mode="create"}) {
                 } else {
                     alert("Failed to save changes");
                 }
+                setSubmitLoading(false);
             }).catch(err => {
                 handleErrorResponse(err);
+                setSubmitLoading(false);
             });
+        }
+    }
+
+    const submitSettings = (retentionRate, parameters) => {
+        let settingsValid = true;
+        const retentionRateParsed = parseFloat(retentionRate);
+        if(isNaN(retentionRateParsed) || /^-?\d+(\.\d+)?$/.test(retentionRate) === false) {
+            setRetentionRateError("Retention rate must be a number between 0 and 1");
+            settingsValid = false;
+        } else if (retentionRateParsed < 0 || retentionRateParsed > 1) {
+            setRetentionRateError("Retention rate must be a number between 0 and 1");
+            settingsValid = false;
+        } else {
+            setRetentionRateError('');
+            setRetentionRate(retentionRate);
+        }
+
+        if(parameters === "") {
+            setParametersError("Parameters cannot be empty");
+            settingsValid = false;
+            return;
+        } else {
+            setParametersError('');
+        }
+
+        const parametersSplit = parameters.split(",").map(num => num.trim());
+        const parametersCheck = parametersSplit.every(num => /^-?\d+(\.\d+)?$/.test(num));;
+        console.log(parametersSplit)
+        console.log(parametersCheck)
+        
+        if(!parametersCheck) {
+            setParametersError("Parameters must be a comma separated list of numbers");
+            settingsValid = false;
+            return;
+        } else {
+            setParametersError('');
+        }
+
+        if(settingsValid) { 
+            setRetentionRate(retentionRate);
+            setParameters(parameters);
+            setOpenSettings(false);
+            setMoreAnchorEl(null);
         }
     }
 
@@ -274,26 +336,48 @@ function CreateAndEditDeck({mode="create"}) {
         <div>
             <div className="page-header">
                 <Typography variant="h4">{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
-                <Box sx={{display: 'flex', alignItems: 'center', gap:2}}>
-                    <Button variant="outlined" startIcon={mode === "create" ? <Add /> : <Done />} onClick={submitDeck}>{mode === "create" ? "Create Deck" : "Save"}</Button>
-                    <Button variant="contained" onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
-                </Box>
+                <Stack direction="row" spacing={2} sx={{justifyContent: 'center', alignItems: 'center'}}>
+                    <Button variant="outlined" loading={submitLoading} disabled={cards === null} startIcon={mode === "create" ? <Add /> : <Done />} onClick={submitDeck}>{mode === "create" ? "Create Deck" : "Save"}</Button>
+                    <Button variant="contained" loading={submitLoading} disabled={cards === null} onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
+                    <IconButton onClick={(e) => setMoreAnchorEl(e.currentTarget)}>
+                        <MoreVert/>
+                    </IconButton>
+                </Stack>
+                <Menu
+                    anchorEl={moreAnchorEl}
+                    open={moreAnchorEl !== null}
+                    onClose={() => {setMoreAnchorEl(null); setParametersError(''); setRetentionRateError('');}}
+                >
+                    <MenuItem onClick={() => setOpenSettings(true)}>
+                        <ListItemIcon>
+                            <Settings/>
+                        </ListItemIcon>
+                        <Typography>Deck settings</Typography>
+                    </MenuItem>
+                    <MenuItem>
+                        <ListItemIcon>
+                            <DeleteOutline color="error" />
+                        </ListItemIcon>
+                        <Typography color="error">Delete deck</Typography>
+                    </MenuItem>
+                </Menu>
             </div>
             
-            <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleErrorMessage !== ""} helperText={titleErrorMessage}/>
             {cards ? (
                     <div>
+                        <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleErrorMessage !== ""} helperText={titleErrorMessage}/>
                         <ol className="flashcard-list">
                             {cards.map(card => (
                                 <li key={card.clientId}>
-                                    <FlashcardElement card={card} onDelete={deleteCard} disableDelete={cards.length === 1}/>
+                                    <FlashcardElement card={card} onDelete={deleteCard} onCopy={copyCard} disableDelete={cards.length === 1}/>
                                 </li>
                             ))}
                         </ol>
-                        <Button variant="contained" startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
+                        <Button variant="contained" sx={{mb: 2}} startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
                     </div>
                 ) : (
                     <div>
+                         <Skeleton variant="text" width="100%" sx={{borderRadius: 2}}></Skeleton>
                         <ol className="flashcard-list">
                             <li>
                                 <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
@@ -335,6 +419,54 @@ function CreateAndEditDeck({mode="create"}) {
             <Snackbar sx={{width: '20%'}} open={generalErrorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setGeneralError('')}}>
                 <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setGeneralError('')}}>{generalErrorMessage}</Alert>
             </Snackbar>
+            <Dialog 
+                open={openSettings}
+                onClose={() => setOpenSettings(false)}
+                slotProps={{
+                    paper: {
+                    component: 'form',
+                    onSubmit: (event) => {
+                        event.preventDefault();
+                        const formData = new FormData(event.currentTarget);
+                        const formJson = Object.fromEntries(formData.entries());
+                        const retentionRate = formJson['retention-rate'];
+                        const parameters = formJson['fsrs-parameters'];
+                        submitSettings(retentionRate, parameters);
+                    },
+                    },
+                }}
+            >
+                <DialogTitle>Deck Settings</DialogTitle>
+                <DialogContent sx={{display: 'flex', flexDirection: 'column', gap: 3}}>
+                    <DialogContentText>
+                        Adjust FSRS parameters below. Defaults work well - modify with caution!
+                    </DialogContentText>
+                    <TextField
+                        required
+                        name="retention-rate"
+                        label="Desired Retention Rate"
+                        fullWidth
+                        variant="standard"
+                        defaultValue={retentionRate}
+                        error={retentionRateError !== ""}
+                        helperText={retentionRateError}
+                    />
+                    <TextField
+                        required
+                        name="fsrs-parameters"
+                        label="FSRS parameters"
+                        fullWidth
+                        variant="standard"
+                        defaultValue={parameters}
+                        error={parametersError !== ""}
+                        helperText={parametersError}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenSettings(false)}>Cancel</Button>
+                    <Button type="submit">Submit</Button>
+                </DialogActions>
+            </Dialog>
         </div>
 
     );

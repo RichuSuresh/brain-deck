@@ -43,17 +43,6 @@ The definition should concisely answer the question with relevant details from t
 Ensure grammatical correctness and clarity in all flashcards.
 The deck must not be empty.
 
-Examples:
-Good questions:
-
-Question: What key factors contribute to the habitability of Tritus?
-
-Answer: Tritus has underground cave systems with stable temperatures and a breathable atmosphere, which may support human life.
-
-Question: Why is Lewy Body Dementia considered distinct from other forms of dementia?
-
-Answer: It involves the buildup of abnormal protein deposits in the brain, leading to cognitive and motor impairments.
-
 Bad flashcards (do not ask questions like these):
 
 Question: Is there a cave system on Tritus that could sustain human life? → (Yes/no question, too specific)
