@@ -166,7 +166,7 @@ function TestDeck({mode}) {
 
     const loadingScreen = () => {
         return (
-            <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: 20}}>
+            <div style={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', textAlign: 'center', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', gap: 20}}>
                 <Typography variant="h4">Getting your flashcards ready...</Typography>
                 <CircularProgress size={100}/>
             </div>
@@ -206,21 +206,21 @@ function TestDeck({mode}) {
     const showContent = () => {
         return <>
             {!testFinished &&
-                <>
-                    <Stack direction="row"  spacing={2} sx={{position: 'absolute', top: 10, right: 10, justifyContent: 'center', alignItems: 'center'}}>
+                <> 
+                    <Stack className="header" direction="row"  spacing={2}>
                         <IconButton onClick={() => {setEndTest(true)}}sx={{width: 50, height: 50}}>
                             <Close sx={{ width: '100%', height: '100%' }}/>
                         </IconButton>
                     </Stack>
                     <Slide direction={slideDirection} in={triggerSlide} mountOnEnter unmountOnExit>
-                        <div>
-                            <ReactCardFlip isFlipped={isFlipped}>
-                                <Card className="card">
+                        <div className="middle">
+                            <ReactCardFlip className="card" isFlipped={isFlipped}>
+                                <Card sx={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: 2}}>
                                     <Typography variant="h6">
                                         {`${currentCardIndex + 1}/${cards.length}`}
                                     </Typography>
-                                    <Box sx={{ width: '85%', flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
-                                        <Typography variant="h5">
+                                    <Box sx={{ width: '85%', flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', overflowY: 'auto', minHeight: 0}}>
+                                        <Typography variant="h5" >
                                             {currentCardIndex < cards.length ? cards[currentCardIndex].term : ""}
                                         </Typography>
                                     </Box>
@@ -228,11 +228,11 @@ function TestDeck({mode}) {
                                         <SyncAlt sx={{ width: '100%', height: '100%' }}/>
                                     </IconButton>
                                 </Card>
-                                <Card className="card">
+                                <Card sx={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', padding: 2}}>
                                     <Typography component={'span'} variant="h6">
                                         {`${currentCardIndex + 1}/${cards.length}`}
                                     </Typography>
-                                    <Box sx={{ width: '85%', flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
+                                    <Box sx={{ width: '85%', flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', overflowY: 'auto'}}>
                                         <Typography variant="h5">
                                             {currentCardIndex < cards.length ? cards[currentCardIndex].definition : ""}
                                         </Typography>
@@ -246,7 +246,7 @@ function TestDeck({mode}) {
                                                 </Box>
                                             </Typography>
                                             <FormControl error={gradeError}>
-                                                <RadioGroup row name="grade">
+                                                <RadioGroup sx={{display: 'flex', justifyContent: 'center'}}row name="grade">
                                                     <FormControlLabel value="forgot" control={<Radio color="error"/>} label="Forgot" />
                                                     <FormControlLabel value="hard" control={<Radio color="warning"/>} label="Hard" />
                                                     <FormControlLabel value="good" control={<Radio color="info"/>} label="Good" />
@@ -263,13 +263,16 @@ function TestDeck({mode}) {
                             </ReactCardFlip>
                         </div>
                     </Slide>
+                    <div className="bottom">
+                        {isFlipped && mode === "review" && <Button loading={loadingSubmit} sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
+                        {isFlipped && mode === "test" && <Button variant="contained" onClick={handleNext}>Next card</Button>}
+                    </div>
                 </>
             }
-            {isFlipped && mode === "review" && !testFinished && <Button loading={loadingSubmit} sx={{position: 'absolute', bottom: 40}} type="submit" variant="contained" form="gradeForm">Next card</Button>}
-            {isFlipped && mode === "test" && !testFinished && <Button sx={{position: 'absolute', bottom: 40}} variant="contained" onClick={handleNext}>Next card</Button>}
             <Modal open={testFinished}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
+                        textAlign: 'center',
                         flexDirection: 'column',
                         gap:2, 
                         position: 'absolute',
@@ -288,6 +291,7 @@ function TestDeck({mode}) {
             <Modal open={endTest}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
+                        textAlign: 'center',
                         flexDirection: 'column',
                         gap:2, 
                         position: 'absolute',
@@ -309,23 +313,25 @@ function TestDeck({mode}) {
     }
 
     return (
-        <div className="test-screen">
-            {cards.length === 0 && 
-                <Box>
-                    <Typography variant="h4">Great work! You have no reviews for this deck for today</Typography>
-                    <Stack direction="row" spacing={2} sx={{justifyContent: 'center', alignItems: 'center', mt: 2}}>
-                        <Button variant="contained" startIcon={<Home/>} onClick={() => {navigate(`/`)}}>Go home</Button>
-                        <Button variant="contained" startIcon={<Edit/>} onClick={() => {navigate(`/edit-deck/${id}`)}}>edit deck</Button>
-                        <Button variant="contained" startIcon={<ViewList/>} onClick={() => {navigate(`/decks`)}}>View all decks</Button>
-                    </Stack>
-                </Box>
-            }
-            <Snackbar open={errorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
-                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {errorMessage('')}}>{errorMessage}</Alert>
-            </Snackbar>
+        <>
+            <div className="test-screen">
+                {cards.length === 0 && 
+                    <Box>
+                        <Typography variant="h4">Great work! You have no reviews for this deck for today</Typography>
+                        <Stack direction="row" spacing={2} sx={{justifyContent: 'center', alignItems: 'center', mt: 2}}>
+                            <Button variant="contained" startIcon={<Home/>} onClick={() => {navigate(`/`)}}>Go home</Button>
+                            <Button variant="contained" startIcon={<Edit/>} onClick={() => {navigate(`/edit-deck/${id}`)}}>edit deck</Button>
+                            <Button variant="contained" startIcon={<ViewList/>} onClick={() => {navigate(`/decks`)}}>View all decks</Button>
+                        </Stack>
+                    </Box>
+                }
+                <Snackbar open={errorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
+                    <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {errorMessage('')}}>{errorMessage}</Alert>
+                </Snackbar>
+                {!isLoading && cards.length > 0 && showContent()}
+            </div>
             {isLoading && loadingScreen()}
-            {!isLoading && cards.length > 0 && showContent()}
-        </div>
+        </>
     );
 }
 

@@ -8,22 +8,10 @@ import { Outlet, Link } from "react-router-dom";
 
 export default function Layout() {
     const [anchorElUser, setAnchorElUser] = useState(null);
-    const [mobileOpen, setMobileOpen] = React.useState(false);
-    const [isClosing, setIsClosing] = React.useState(false);
-
-    const handleDrawerClose = () => {
-        setIsClosing(true);
-        setMobileOpen(false);
-    };
-
-    const handleDrawerTransitionEnd = () => {
-        setIsClosing(false);
-    };
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     const handleDrawerToggle = () => {
-        if (!isClosing) {
         setMobileOpen(!mobileOpen);
-        }
     };
     
     const handleOpenUserMenu = (event) => {
@@ -37,7 +25,7 @@ export default function Layout() {
             <Toolbar />
                 <List>
                     <ListItem key="home" disablePadding>
-                        <ListItemButton component={Link} to="/">
+                        <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/">
                             <ListItemIcon>
                                 <Home />
                             </ListItemIcon>
@@ -45,7 +33,7 @@ export default function Layout() {
                         </ListItemButton>
                     </ListItem>
                     <ListItem key="my-flashcards" disablePadding>
-                        <ListItemButton component={Link} to="/create">
+                        <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/create">
                             <ListItemIcon>
                                 <LibraryAdd />
                             </ListItemIcon>
@@ -53,7 +41,7 @@ export default function Layout() {
                         </ListItemButton>
                     </ListItem>
                     <ListItem key="edit-my-flashcards" disablePadding>
-                        <ListItemButton component={Link} to="/decks">
+                        <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/decks">
                             <ListItemIcon>
                                 <AutoAwesomeMotion />
                             </ListItemIcon>
@@ -65,30 +53,20 @@ export default function Layout() {
     )
     return (
         <Box  sx={{ display: 'flex' }}>
-            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, boxShadow: 0 }}>
+            <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1, boxShadow: 0, justifyContent: 'space-between'}}>
                 <Toolbar>
                 <IconButton
                     color="inherit"
-                    aria-label="open drawer"
-                    edge="start"
-                    onClick={handleDrawerToggle}
+                    onClick={() => setMobileOpen(true)}
                     sx={{ mr: 2, display: { sm: 'none' } }}
                 >
                     <MenuIcon />
                 </IconButton>
                     <Typography variant="h4"
-                        sx={{ mr: 2}}
+                        sx={{ mr: 2, flexGrow: 1}}
                     >
                         Brain Deck
                     </Typography>
-                    <Box sx={{ flexGrow: 1, display: { md: 'flex' } }}>
-                        <Button
-                            href="/"
-                            color="inherit"
-                        >
-                            Home
-                        </Button>
-                    </Box>
                     <Box sx={{ flexGrow: 0, display: {md: 'flex' } }}>
                         <Tooltip title="Open settings">
                             <IconButton  onClick={handleOpenUserMenu} sx={{ p: 0 }}>
@@ -109,16 +87,14 @@ export default function Layout() {
                 <Drawer
                     variant="temporary"
                     open={mobileOpen}
-                    onTransitionEnd={handleDrawerTransitionEnd}
-                    onClose={handleDrawerClose}
+                    onClose={() => setMobileOpen(false)}
                     sx={{
                         display: { xs: 'block', sm: 'none' },
-                        xs: 'block', sm: 'none',
                         '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, },
                     }}
                     slotProps={{
                         root: {
-                        keepMounted: true, // Better open performance on mobile.
+                        keepMounted: true,
                         },
                     }}
                     >

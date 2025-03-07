@@ -424,7 +424,7 @@ function CreateAndEditDeck({mode="create"}) {
         <div>
             <div className="page-header">
                 <Typography variant="h4">{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
-                <Stack direction="row" spacing={2} sx={{justifyContent: 'center', alignItems: 'center'}}>
+                <Stack direction="row" spacing={2} sx={{alignItems: 'center'}}>
                     <Button variant="outlined" loading={submitLoading} disabled={cards === null} startIcon={mode === "create" ? <Add /> : <Done />} onClick={submitDeck}>{mode === "create" ? "Create Deck" : "Save"}</Button>
                     <Button variant="contained" loading={submitLoading} disabled={cards === null} onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
                     <IconButton disabled={cards === null} onClick={(e) => setMoreAnchorEl(e.currentTarget)}>
@@ -459,7 +459,7 @@ function CreateAndEditDeck({mode="create"}) {
                         transform: 'translate(-50%, -50%)',
                         boxShadow: 24,
                         p: 4,}}>
-                    <Typography id="modal-modal-title" variant="h4" component="h2">Your deck is ready</Typography>
+                    <Typography sx={{textAlign: 'center'}} id="modal-modal-title" variant="h4" component="h2">Your deck is ready</Typography>
                     <img src={tick} alt="tick" style={{width: 150}}/>
                     <Button variant="contained" onClick={() => {setShowModal(false)}}>Continue editing</Button>
                     <Button variant="outlined" onClick={() => navigate(`/decks`)}>View created Decks</Button>
