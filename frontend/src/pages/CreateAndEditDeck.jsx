@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, TextField, Typography, Button, Alert, Collapse, Modal, Card, Skeleton, Snackbar, Stack, IconButton, Menu, MenuItem, ListItemIcon, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from "@mui/material";
+import { TextField, Typography, Button, Alert, Modal, Card, Skeleton, Snackbar, Stack, IconButton, Menu, MenuItem, ListItemIcon, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Box } from "@mui/material";
 import "../styles/Layout.css";
-import { Add, Delete, DeleteOutline, Done, MoreVert, Settings } from "@mui/icons-material";
+import { Add, Done, MoreVert, Settings } from "@mui/icons-material";
 import { v4 as uuid } from "uuid";
 import FlashcardElement from "../components/FlashcardElement";
 import api from "../api";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import tick from '../assets/tick.svg';
 
 class Flashcard {
@@ -42,6 +42,7 @@ function CreateAndEditDeck({mode="create"}) {
     const [parameters, setParameters] = useState("0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621");
     const [retentionRateError, setRetentionRateError] = useState('');
     const [parametersError, setParametersError] = useState('');
+    const [deckDoesExist, setDeckExists] = useState(true);
 
     const originalRetentionRate = useRef(retentionRate);
     const originalParameters = useRef(parameters);
@@ -68,6 +69,7 @@ function CreateAndEditDeck({mode="create"}) {
             } else {
                 setCards([new Flashcard()]);
                 setTitle("");
+                setDeckExists(true);
             }
             setTitleError("");
             setGeneralError("");
@@ -118,7 +120,7 @@ function CreateAndEditDeck({mode="create"}) {
             setParameters(data.parameters.join(', '))
         })
         .catch(err => {
-            alert(err);
+            setDeckExists(false);
         });
     }
 
@@ -362,6 +364,62 @@ function CreateAndEditDeck({mode="create"}) {
         setRetentionRateError('');
     }
 
+    const showDeck = () => {
+        return(
+            <div>
+                <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleErrorMessage !== ""} helperText={titleErrorMessage}/>
+                <ol className="flashcard-list">
+                    {cards.map(card => (
+                        <li key={card.clientId}>
+                            <FlashcardElement card={card} onDelete={deleteCard} onCopy={copyCard} disableDelete={cards.length === 1}/>
+                        </li>
+                    ))}
+                </ol>
+                <Button variant="contained" sx={{mb: 2}} startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
+            </div>
+        );
+    }
+
+    const showLoading = () => {
+        return (
+            <div>
+                <Skeleton variant="text" width="100%" sx={{borderRadius: 2}}></Skeleton>
+                <ol className="flashcard-list">
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <FlashcardElement card={new Flashcard()}/>
+                        </Skeleton>
+                    </li>
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <FlashcardElement card={new Flashcard()}/>
+                        </Skeleton>
+                    </li>
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <FlashcardElement card={new Flashcard()}/>
+                        </Skeleton>
+                    </li>
+                    
+                </ol>
+        </div>
+        )
+    }
+
+    const showNotExist = () => {
+        return (
+            <Typography variant="h6">
+                <Box sx={{fontWeight: 'bold', marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
+                    Oops! Looks like this deck doesn't exist. Create a deck {" "}
+                    <Link to="/create" style={{ textDecoration: 'underline', color: "blue" }}>
+                        here
+                    </Link>
+                    .
+                </Box>
+            </Typography>
+        )
+    }
+
     return (
         <div>
             <div className="page-header">
@@ -369,7 +427,7 @@ function CreateAndEditDeck({mode="create"}) {
                 <Stack direction="row" spacing={2} sx={{justifyContent: 'center', alignItems: 'center'}}>
                     <Button variant="outlined" loading={submitLoading} disabled={cards === null} startIcon={mode === "create" ? <Add /> : <Done />} onClick={submitDeck}>{mode === "create" ? "Create Deck" : "Save"}</Button>
                     <Button variant="contained" loading={submitLoading} disabled={cards === null} onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
-                    <IconButton onClick={(e) => setMoreAnchorEl(e.currentTarget)}>
+                    <IconButton disabled={cards === null} onClick={(e) => setMoreAnchorEl(e.currentTarget)}>
                         <MoreVert/>
                     </IconButton>
                 </Stack>
@@ -384,51 +442,12 @@ function CreateAndEditDeck({mode="create"}) {
                         </ListItemIcon>
                         <Typography>Deck settings</Typography>
                     </MenuItem>
-                    <MenuItem>
-                        <ListItemIcon>
-                            <DeleteOutline color="error" />
-                        </ListItemIcon>
-                        <Typography color="error">Delete deck</Typography>
-                    </MenuItem>
                 </Menu>
             </div>
+            {!cards && deckDoesExist && showLoading()}
+            {!cards && !deckDoesExist && showNotExist()}
+            {cards && deckDoesExist && showDeck()}
             
-            {cards ? (
-                    <div>
-                        <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleErrorMessage !== ""} helperText={titleErrorMessage}/>
-                        <ol className="flashcard-list">
-                            {cards.map(card => (
-                                <li key={card.clientId}>
-                                    <FlashcardElement card={card} onDelete={deleteCard} onCopy={copyCard} disableDelete={cards.length === 1}/>
-                                </li>
-                            ))}
-                        </ol>
-                        <Button variant="contained" sx={{mb: 2}} startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
-                    </div>
-                ) : (
-                    <div>
-                         <Skeleton variant="text" width="100%" sx={{borderRadius: 2}}></Skeleton>
-                        <ol className="flashcard-list">
-                            <li>
-                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
-                                    <FlashcardElement card={new Flashcard()}/>
-                                </Skeleton>
-                            </li>
-                            <li>
-                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
-                                    <FlashcardElement card={new Flashcard()}/>
-                                </Skeleton>
-                            </li>
-                            <li>
-                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
-                                    <FlashcardElement card={new Flashcard()}/>
-                                </Skeleton>
-                            </li>
-                            
-                        </ol>
-                    </div>
-                )
-            }
             <Modal open={showModal}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
@@ -501,6 +520,8 @@ function CreateAndEditDeck({mode="create"}) {
                     <Button type="submit">Submit</Button>
                 </DialogActions>
             </Dialog>
+            
+            
         </div>
 
     );

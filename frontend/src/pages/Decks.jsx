@@ -42,7 +42,7 @@ function Decks() {
     const [showConfirmDelete, setConfirmDelete] = useState(false);
     const [selectedDeck, setSelectedDeck] = useState(null);
     const [deleteSuccessMessage, setDeleteSuccessMessage] = useState('');
-    const [deleteErrorMessage, setDeleteErrorMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     let navigate = useNavigate();
 
@@ -55,10 +55,11 @@ function Decks() {
         .get("/api/deck/get-decks/")
         .then(res => res.data)
         .then(data => {
+            console.log(data)
             setDecks(data)
         })
         .catch(err => {
-            alert(err);
+            setErrorMessage(err);
         });
     }
 
@@ -75,14 +76,14 @@ function Decks() {
     }
 
     const deleteDeck = async (id) => {
-        const res = await api
+        await api
         .delete(`/api/deck/delete-deck/${id}/`)
-        .then(res => {
+        .then(() => {
             getDecks();
             setDeleteSuccessMessage(`${selectedDeck?.title} was deleted successfully`);
         })
         .catch(err => {
-            setDeleteErrorMessage(`An error occurred whilst deleting the deck: ${selectedDeck?.title}\n\n${err.response?.data.message ?? err.message}`);
+            setErrorMessage(`An error occurred whilst deleting the deck: ${selectedDeck?.title}\n\n${err.response?.data.message ?? err.message}`);
         });
     }
 
@@ -90,7 +91,7 @@ function Decks() {
         return(
             <Typography variant="h6">
                 <Box sx={{fontWeight: 'bold', marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
-                    Looks like you haven't created any flashcards, create some{" "}
+                    Looks like you haven't created any decks, create some{" "}
                     <Link to="/create" style={{ textDecoration: 'underline', color: "blue" }}>
                         here
                     </Link>
@@ -134,13 +135,37 @@ function Decks() {
         }
     }
 
+    const showLoading = () => {
+        return (
+            <div>
+                <ul className="flashcard-list">
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <DeckCard />
+                        </Skeleton>
+                    </li>
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <DeckCard />
+                        </Skeleton>
+                    </li>
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <DeckCard />
+                        </Skeleton>
+                    </li>
+                    
+                </ul>
+            </div>
+        )
+    }
+
     return (
         <div>
             <div className="page-header">
                 <Typography variant="h4">My Flashcard Decks</Typography>
             </div>
-            
-            <TextField
+            {decks && decks.length > 0 && <TextField
                 id="search"
                 placeholder="What deck are you looking for?"
                 variant="outlined"
@@ -148,40 +173,18 @@ function Decks() {
                 size="small"
                 slotProps={{
                     input: {
-                      startAdornment: (
+                    startAdornment: (
                         <InputAdornment position="start">
-                          <Search />
+                        <Search />
                         </InputAdornment>
-                      ),
+                    ),
                     },
                 }}
                 onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {decks ? (
-                    showDecks()
-                ) : (
-                    <div>
-                        <ul className="flashcard-list">
-                            <li>
-                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
-                                    <DeckCard />
-                                </Skeleton>
-                            </li>
-                            <li>
-                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
-                                    <DeckCard />
-                                </Skeleton>
-                            </li>
-                            <li>
-                                <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
-                                    <DeckCard />
-                                </Skeleton>
-                            </li>
-                            
-                        </ul>
-                    </div>
-                )
-            }
+            />}
+            {!decks && showLoading()}
+            {decks && decks.length === 0 && noDecks()}
+            {decks && decks.length > 0 && showDecks()}
             <Modal open={showConfirmDelete}>
                 <Card sx={{display: 'flex',
                         alignItems: 'center',
@@ -210,15 +213,15 @@ function Decks() {
                     </Box>
                 </Card>
             </Modal>
-            <Snackbar sx={{maxWidth: '20%'}} open={deleteSuccessMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setDeleteSuccessMessage('')}}>
+            <Snackbar sx={{maxWidth: '20%'}} open={deleteSuccessMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000}>
                 <Alert severity="success" onClose={() => {setDeleteSuccessMessage('')}}>
                     <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
                         "{deleteSuccessMessage}"
                     </span>
                 </Alert>
             </Snackbar>
-            <Snackbar sx={{maxWidth: '20%'}} open={deleteErrorMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000} onClose={() => {setDeleteErrorMessage('')}}>
-                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setDeleteErrorMessage('')}}>
+            <Snackbar sx={{maxWidth: '20%'}} open={errorMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}>
+                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setErrorMessage('')}}>
                     <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
                         "{deleteSuccessMessage}"
                     </span>
