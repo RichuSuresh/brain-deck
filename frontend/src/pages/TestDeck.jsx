@@ -325,7 +325,7 @@ function TestDeck({mode}) {
                         </Stack>
                     </Box>
                 }
-                <Snackbar open={errorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
+                <Snackbar sx={{maxWidth: {xs: '100%', sm: '20%'}}} open={errorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
                     <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {errorMessage('')}}>{errorMessage}</Alert>
                 </Snackbar>
                 {!isLoading && cards.length > 0 && showContent()}

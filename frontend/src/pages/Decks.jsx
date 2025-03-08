@@ -55,11 +55,10 @@ function Decks() {
         .get("/api/deck/get-decks/")
         .then(res => res.data)
         .then(data => {
-            console.log(data)
             setDecks(data)
         })
         .catch(err => {
-            setErrorMessage(err);
+            setErrorMessage(`Some errors occurred whilst processing your request... \n\n${err.message}`);
         });
     }
 
@@ -214,17 +213,17 @@ function Decks() {
                     </Box>
                 </Card>
             </Modal>
-            <Snackbar sx={{maxWidth: '20%'}} open={deleteSuccessMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000}>
+            <Snackbar sx={{maxWidth: {xs: '100%', sm: '20%'}}} autoHideDuration={6000} open={deleteSuccessMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}>
                 <Alert severity="success" onClose={() => {setDeleteSuccessMessage('')}}>
                     <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
                         "{deleteSuccessMessage}"
                     </span>
                 </Alert>
             </Snackbar>
-            <Snackbar sx={{maxWidth: '20%'}} open={errorMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}>
+            <Snackbar sx={{maxWidth: {xs: '100%', sm: '20%'}}} open={errorMessage !== ''} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000}>
                 <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setErrorMessage('')}}>
                     <span style={{ wordBreak: "break-word", overflowWrap: "break-word" }}>
-                        "{deleteSuccessMessage}"
+                        {errorMessage}
                     </span>
                 </Alert>
             </Snackbar>

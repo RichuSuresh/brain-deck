@@ -220,7 +220,7 @@ function Home() {
                     </div>
                 )
             }
-            <Snackbar open={errorMessage !== ''} sx={{width: '20%'}} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
+            <Snackbar sx={{maxWidth: {xs: '100%', sm: '20%'}}} open={errorMessage !== ''}  anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setErrorMessage('')}}>
                 <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setErrorMessage('')}}>{errorMessage}</Alert>
             </Snackbar>
         </div>

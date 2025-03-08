@@ -195,6 +195,7 @@ function CreateAndEditDeck({mode="create"}) {
 
     const handleErrorResponse = (err) => {
         var errorMessage = "Some errors occurred whilst processing your request... ";
+        console.log(err);
         if (err.status === 400) {
             if(err.response.data.title) {
                 errorMessage += "\n\nTitle: " + err.response.data.title[0];
@@ -214,7 +215,7 @@ function CreateAndEditDeck({mode="create"}) {
                     }
                 }
             }
-        } else if (err.response.data.message){
+        } else if (err.response){
             errorMessage += "\n\n" + err.response.data.message;
         } else if (err.message) {
             errorMessage += "\n\n" + err.message;
@@ -285,12 +286,13 @@ function CreateAndEditDeck({mode="create"}) {
         e.preventDefault();
         setSubmitLoading(true);
         if (!validateCards()) {
+            setSubmitLoading(false);
             return;
         }
 
         const request = createPayload();
         if(mode === "create") {
-            const res = await api.post("/api/deck/create-deck/", request).then(res => {
+            await api.post("/api/deck/create-deck/", request).then(res => {
                 navigate(`/edit-deck/${res.data.data.deckId}`);
                 setShowModal(true);
                 setSubmitLoading(false);
@@ -299,7 +301,7 @@ function CreateAndEditDeck({mode="create"}) {
                 setSubmitLoading(false);
             });
         } else if (mode === "edit") {
-            const res = await api.patch(`/api/deck/edit-deck/${id}/`, request).then(res => {
+            await api.patch(`/api/deck/edit-deck/${id}/`, request).then(res => {
                 setShowModal(true);
                 getDeck();
                 setSubmitLoading(false);
@@ -313,6 +315,7 @@ function CreateAndEditDeck({mode="create"}) {
     const submitAndTest = async () => {
         setSubmitLoading(true);
         if(!validateCards()) {
+            setSubmitLoading(false);
             return;
         }
 
@@ -320,7 +323,7 @@ function CreateAndEditDeck({mode="create"}) {
 
 
         if(mode === "create") {
-            const res = await api.post("/api/deck/create-deck/", deck).then(res => {
+            await api.post("/api/deck/create-deck/", deck).then(res => {
                 navigate(`/test/${res.data.data.deckId}`);
                 setSubmitLoading(false);
             }).catch(err => {
@@ -328,7 +331,7 @@ function CreateAndEditDeck({mode="create"}) {
                 setSubmitLoading(false);
             });
         } else if (mode === "edit") {
-            const res = await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
+            await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
                 if (res.status === 200) {
                     navigate(`/test/${id}`);
                 } else {
@@ -465,7 +468,7 @@ function CreateAndEditDeck({mode="create"}) {
                     <Button variant="outlined" onClick={() => navigate(`/decks`)}>View created Decks</Button>
                 </Card>
             </Modal>
-            <Snackbar sx={{width: '20%'}} open={generalErrorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} onClose={() => {setGeneralError('')}}>
+            <Snackbar sx={{maxWidth: {xs: '100%', sm: '20%'}}} open={generalErrorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000} onClose={() => {setGeneralError('')}}>
                 <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setGeneralError('')}}>{generalErrorMessage}</Alert>
             </Snackbar>
             <Dialog 
