@@ -12,13 +12,13 @@ function DeckCard({id, title, numOfCardsToReview, onReview}) {
     return (
         
             <Card id = {id} sx={{ p: 3, boxShadow: 4 }}>
-                <Grid2 container sx={{alignItems: 'center', gap: 2}}>
-                    <Grid2 sx={{maxWidth: '50%'}}>
-                        <Typography variant="h5" sx={{overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>
+                <Grid2 container sx={{alignItems: 'center', gap: 2, display: 'flex', justifyContent: 'space-between'}}>
+                    <Grid2 sx={{width: {xl: '50%', lg: '100%'}}}>
+                        <Typography variant="h5" sx={{overflow: 'hidden', textOverflow: 'ellipsis'}}>
                             {title}
                         </Typography>
                     </Grid2>
-                    <Grid2 sx={{flexGrow: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2}}>
+                    <Grid2 sx={{display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: 2}}>
                         <Typography>
                             {numOfCardsToReview > 1 ? numOfCardsToReview + " cards to review" : "1 card to review"}
                         </Typography>

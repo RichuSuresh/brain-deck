@@ -6,11 +6,11 @@ def gradeValidation(value):
     
 class FlashcardSerializer(serializers.Serializer):
     id = serializers.CharField(required=False)
-    term = serializers.CharField(required=True)
-    definition = serializers.CharField(required=True)
+    term = serializers.CharField(required=True, max_length=100)
+    definition = serializers.CharField(required=True, max_length=200)
 
 class DeckSerializer(serializers.Serializer):
-    title = serializers.CharField(required=True)
+    title = serializers.CharField(required=True, max_length=70)
     flashcards = serializers.ListField(child=FlashcardSerializer(), allow_empty=False)
     parameters = serializers.ListField(child=serializers.FloatField(), required=False, min_length=19, max_length=19)
     retentionRate = serializers.FloatField(required=False)
@@ -20,7 +20,7 @@ class FlashcardUpateSerializer(serializers.Serializer):
     grade = serializers.CharField(validators=[gradeValidation])
 
 class DeckUpdateSerializer(serializers.Serializer):
-    title = serializers.CharField(required=False)
+    title = serializers.CharField(required=False, max_length=70)
     newFlashcards = serializers.ListField(child=FlashcardSerializer(), allow_empty=True)
     updatedFlashcards = serializers.DictField(child=FlashcardSerializer(), allow_empty=True)
     deletedFlashcards = serializers.ListField(child=serializers.CharField(), allow_empty=True)

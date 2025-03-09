@@ -134,8 +134,11 @@ function CreateAndEditDeck({mode="create"}) {
             setGeneralError("");
         }
         if(title === "") {
-            setTitleError("Title cannot be empty");
+            setTitleError("Title cannot be empty and must be less than or equal to 50 characters");
             isValid = false;
+        } else if (title.length > 70) {
+            isValid = false;
+            setTitleError("Title must be less than or equal to 50 characters");
         } else {
             setTitleError("");
         }
@@ -144,13 +147,20 @@ function CreateAndEditDeck({mode="create"}) {
             if(card.term === "") {
                 card.setTermError("Term cannot be empty");
                 isValid = false;
-            } else {
+            } else if (card.term.length > 70) {
+                isValid = false;
+                card.setTermError("Term must be less than or equal to 70 characters");
+            }
+            else {
                 card.setTermError("");
             }
 
             if(card.definition === "") {
                 card.setDefinitionError("Definition cannot be empty");
                 isValid = false;
+            } else if (card.definition.length > 200) {
+                isValid = false;
+                card.setDefinitionError("Definition must be less than or equal to 200 characters");
             } else {
                 card.setDefinitionError("");
             }
@@ -290,6 +300,7 @@ function CreateAndEditDeck({mode="create"}) {
             return;
         }
 
+        console.log('test');
         const request = createPayload();
         if(mode === "create") {
             await api.post("/api/deck/create-deck/", request).then(res => {
@@ -426,7 +437,7 @@ function CreateAndEditDeck({mode="create"}) {
     return (
         <div>
             <div className="page-header">
-                <Typography variant="h4">{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
+                <Typography variant="h4" sx={{fontWeight: 'bold'}}>{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
                 <Stack direction="row" spacing={2} sx={{alignItems: 'center'}}>
                     <Button variant="outlined" loading={submitLoading} disabled={cards === null} startIcon={mode === "create" ? <Add /> : <Done />} onClick={submitDeck}>{mode === "create" ? "Create Deck" : "Save"}</Button>
                     <Button variant="contained" loading={submitLoading} disabled={cards === null} onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>

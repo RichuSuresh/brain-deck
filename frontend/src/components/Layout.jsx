@@ -18,7 +18,7 @@ export default function Layout() {
         setAnchorElUser(event.currentTarget);
     };
 
-    const drawerWidth = 300
+    const drawerWidth = 240
 
     const drawer = (
         <div>
