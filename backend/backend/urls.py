@@ -17,6 +17,17 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from api import views
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path("api/deck/create-deck/", views.createDeck),
+    path("api/deck/get-decks/", views.getAllDecks),
+    path("api/deck/get-deck/<id>/", views.getDeck),
+    path("api/deck/edit-deck/<id>/", views.editDeck),
+    path("api/deck/delete-deck/<id>/", views.editDeck),
+    path("api/test/<id>/update-card/", views.updateFlashcard),
+    path("api/deck/get-deck-for-review/<id>/", views.getDeckToReview),
+    path("api/deck/get-decks-to-review/", views.getAllDecksToReview),
+    path("api/deck/generate/", views.generateDeck),
 ]

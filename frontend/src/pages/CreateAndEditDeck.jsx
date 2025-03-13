@@ -1,0 +1,544 @@
+import React, { useEffect, useRef, useState } from "react";
+import { TextField, Typography, Button, Alert, Modal, Card, Skeleton, Snackbar, Stack, IconButton, Menu, MenuItem, ListItemIcon, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Box } from "@mui/material";
+import "../styles/Layout.css";
+import { Add, Done, MoreVert, Settings } from "@mui/icons-material";
+import { v4 as uuid } from "uuid";
+import FlashcardElement from "../components/FlashcardElement";
+import api from "../api";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import tick from '../assets/tick.svg';
+
+class Flashcard {
+    constructor(clientId = uuid(), serverId = undefined, term = "", definition = "") {
+        this.clientId = clientId
+        this.serverId = serverId
+        this.term = term
+        this.definition = definition
+        this.termErrorMessage = ""
+        this.definitionErrorMessage = ""
+    };
+
+    setTermError(termErrorMessage = "") {
+        this.termErrorMessage = termErrorMessage
+    }
+
+    setDefinitionError(definitionErrorMessage = "") {
+        this.definitionErrorMessage = definitionErrorMessage
+    }
+}
+
+function CreateAndEditDeck({mode="create"}) {
+    const { id } = useParams()
+    const [cards, setCards] = useState(mode === "create" ? [new Flashcard()] : null)
+    const originalDeck = useRef(new Map())
+    const [title, setTitle] = useState("")
+    const [titleErrorMessage, setTitleError] = useState('')
+    const [generalErrorMessage, setGeneralError] = useState('')
+    const [showModal, setShowModal] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
+    const [moreAnchorEl, setMoreAnchorEl] = useState(null);
+    const [openSettings, setOpenSettings] = useState(false);
+    const [retentionRate, setRetentionRate] = useState(0.9);
+    const [parameters, setParameters] = useState("0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621");
+    const [retentionRateError, setRetentionRateError] = useState('');
+    const [parametersError, setParametersError] = useState('');
+    const [deckDoesExist, setDeckExists] = useState(true);
+
+    const originalRetentionRate = useRef(retentionRate);
+    const originalParameters = useRef(parameters);
+
+    const defaultParameters = "0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655, 0.6621";
+    const defaultRetentionRate = 0.9;
+
+    let navigate = useNavigate();
+    const location = useLocation();
+    const { generatedDeck } = location.state || {};
+
+    useEffect(() => {
+        if(mode === "edit"){
+            getDeck()
+        }
+        if(mode === "create"){
+            if(generatedDeck !== undefined) {
+                setTitle(generatedDeck.title);
+                setCards(
+                    generatedDeck.flashcards.map(card => {
+                        return new Flashcard(undefined, card.id, card.term, card.definition)
+                    })
+                );
+            } else {
+                setCards([new Flashcard()]);
+                setTitle("");
+                setDeckExists(true);
+            }
+            setTitleError("");
+            setGeneralError("");
+        }
+    }, [mode, generatedDeck])
+
+    const deleteCard = (id) => {
+        setCards(
+            cards.filter(card =>
+              card.clientId !== id
+            )
+        );
+    }
+
+    const copyCard = (id) => {
+        const card = cards.find(card => card.clientId === id)
+        setCards([...cards, new Flashcard(undefined, undefined, card.term, card.definition)])
+    }
+
+    const addCard = () => {
+        setCards([
+            ...cards,
+            new Flashcard(),
+        ]);
+    }
+
+    const getDeck = async () => {
+        const originalDeckMap = new Map();
+        originalDeckMap.set('flashcards', new Map());
+        const res = await api
+        .get(`/api/deck/get-deck/${id}/`)
+        .then(res => res.data)
+        .then(data => {
+            const cards = data.flashcards.map(card => {
+                const flashcard = new Flashcard(undefined, card.id, card.term, card.definition);
+                originalDeckMap.get('flashcards').set(flashcard.serverId, new Flashcard(undefined, card.id, card.term, card.definition));
+                return flashcard;
+            });
+            originalDeckMap.set('title', data.title)
+            originalDeckMap.set('retentionRate', data.retentionRate)
+            originalDeckMap.set('parameters', data.parameters.join(', '))
+            setCards(cards)
+            originalDeck.current = originalDeckMap
+            originalRetentionRate.current = data.retentionRate
+            originalParameters.current = data.parameters.join(', ')
+            setTitle(data.title)
+            setRetentionRate(data.retentionRate)
+            setParameters(data.parameters.join(', '))
+        })
+        .catch(err => {
+            setDeckExists(false);
+        });
+    }
+
+    const validateCards = () => {
+        
+        var isValid = true;
+        if(cards.length === 0) {
+            setGeneralError("Please add at least one flashcard");
+            isValid = false;
+        } else {
+            setGeneralError("");
+        }
+        if(title === "") {
+            setTitleError("Title cannot be empty and must be less than or equal to 50 characters");
+            isValid = false;
+        } else if (title.length > 70) {
+            isValid = false;
+            setTitleError("Title must be less than or equal to 50 characters");
+        } else {
+            setTitleError("");
+        }
+
+        const validatedCards = cards.map(card => {
+            if(card.term === "") {
+                card.setTermError("Term cannot be empty");
+                isValid = false;
+            } else if (card.term.length > 70) {
+                isValid = false;
+                card.setTermError("Term must be less than or equal to 70 characters");
+            }
+            else {
+                card.setTermError("");
+            }
+
+            if(card.definition === "") {
+                card.setDefinitionError("Definition cannot be empty");
+                isValid = false;
+            } else if (card.definition.length > 200) {
+                isValid = false;
+                card.setDefinitionError("Definition must be less than or equal to 200 characters");
+            } else {
+                card.setDefinitionError("");
+            }
+            return card;
+        });
+
+        setCards(validatedCards);
+        return isValid
+    }
+
+    const validateSettings = (retentionRate, parameters) => {
+        let settingsValid = true;
+        const retentionRateParsed = parseFloat(retentionRate);
+        const isValidRetentionRegex = /^\d+(\.\d+)?$/
+        if(retentionRate === "") {
+            setRetentionRateError("Retention rate cannot be empty and must be a number that is greater than 0 and less than 1");
+            settingsValid = false;
+        } else if(isValidRetentionRegex.test(retentionRate) === false || retentionRateParsed <= 0 || retentionRateParsed >= 1) {
+            setRetentionRateError("Retention rate must be a number that is greater than 0 and less than 1");
+            settingsValid = false;
+        } else {
+            setRetentionRateError('');
+            setRetentionRate(retentionRate);
+        }
+
+        const isValidParameterRegex = /^-?\d+(\.\d+)?$/
+        const parametersList = parameters.split(",").map(num => num.trim());
+        const parametersCheck = parametersList.every(num => isValidParameterRegex.test(num));
+
+        if(parameters === "" || !parametersCheck) {
+            setParametersError("Parameters must be a comma separated list of exactly 19 numbers");
+            settingsValid = false;
+        } else if (parametersList.length !== 19) {
+            setParametersError("You must enter a list of exactly 19 numbers for the parameters");
+            settingsValid = false;
+        } else {
+            setParametersError('');
+        }
+
+        return settingsValid
+    }
+
+    const handleErrorResponse = (err) => {
+        var errorMessage = "Some errors occurred whilst processing your request... ";
+        console.log(err);
+        if (err.status === 400) {
+            if(err.response.data.title) {
+                errorMessage += "\n\nTitle: " + err.response.data.title[0];
+            }
+            if(err.response.data.flashcards) {      
+                for (const [key, value] of Object.entries(err.response.data.flashcards)) {
+                    if(value.term || value.definition) {
+                        errorMessage += "\n\nFlashcard " + (parseInt(key) + 1) + ":";
+                    } else {
+                        errorMessage += "\n\nFlashcards: " + value;
+                    }
+                    if(value.term) {
+                        errorMessage += "\nTerm: " + value.term[0];
+                    }
+                    if(value.definition) {
+                        errorMessage += "\nDefinition: " + value.definition[0];
+                    }
+                }
+            }
+        } else if (err.response){
+            errorMessage += "\n\n" + err.response.data.message;
+        } else if (err.message) {
+            errorMessage += "\n\n" + err.message;
+        } else {
+            errorMessage += "\n\n" + err;
+        }
+        setGeneralError(errorMessage);
+    }
+
+    
+    const createPayload = () => {
+        if (mode === "create") {
+            return {
+                title: title,
+                retentionRate: retentionRate,
+                parameters: parameters.split(",").map(num => parseFloat(num)),
+                flashcards: cards.map(card => {
+                    return {
+                        term: card.term,
+                        definition: card.definition
+                    }
+                })
+            }
+        } else if (mode === "edit") {
+            
+            const newCards = []
+            const updatedCards = {}
+            const otherCards = new Set()
+            const deletedCards = []
+            const originalTitle = originalDeck.current.get('title')
+            const originalRetentionRate = originalDeck.current.get('retentionRate')
+            const originalParameters = originalDeck.current.get('parameters')
+            const originalFlashcards = originalDeck.current.get('flashcards')
+            cards.forEach(card => {
+                if(card.serverId === undefined) {
+                    newCards.push({
+                        term: card.term,
+                        definition: card.definition
+                    })
+                } else {
+                    otherCards.add(card.serverId)
+                    if(originalFlashcards.get(card.serverId).term !== card.term || originalFlashcards.get(card.serverId).definition !== card.definition) {
+                        updatedCards[card.serverId] = {
+                            term: card.term,
+                            definition: card.definition
+                        }
+                    }
+                }
+            });
+
+            originalFlashcards.forEach((_, key) => {
+                if(!otherCards.has(key)) {
+                    deletedCards.push(key)
+                }
+            });
+            return {
+                title: title === originalTitle ? undefined : title,
+                newFlashcards: newCards,
+                updatedFlashcards: updatedCards,
+                deletedFlashcards: deletedCards,
+                parameters: parameters === originalParameters ? undefined : parameters.split(",").map(num => parseFloat(num)),
+                retentionRate: retentionRate === originalRetentionRate ? undefined : retentionRate
+            }
+        }
+    }
+
+    const submitDeck = async (e) => {
+        e.preventDefault();
+        setSubmitLoading(true);
+        if (!validateCards()) {
+            setSubmitLoading(false);
+            return;
+        }
+
+        console.log('test');
+        const request = createPayload();
+        if(mode === "create") {
+            await api.post("/api/deck/create-deck/", request).then(res => {
+                navigate(`/edit-deck/${res.data.data.deckId}`);
+                setShowModal(true);
+                setSubmitLoading(false);
+            }).catch(err => {
+                handleErrorResponse(err);
+                setSubmitLoading(false);
+            });
+        } else if (mode === "edit") {
+            await api.patch(`/api/deck/edit-deck/${id}/`, request).then(res => {
+                setShowModal(true);
+                getDeck();
+                setSubmitLoading(false);
+            }).catch(err => {
+                handleErrorResponse(err);
+                setSubmitLoading(false);
+            });
+        }
+    }
+
+    const submitAndTest = async () => {
+        setSubmitLoading(true);
+        if(!validateCards()) {
+            setSubmitLoading(false);
+            return;
+        }
+
+        const deck = createPayload();
+
+
+        if(mode === "create") {
+            await api.post("/api/deck/create-deck/", deck).then(res => {
+                navigate(`/test/${res.data.data.deckId}`);
+                setSubmitLoading(false);
+            }).catch(err => {
+                handleErrorResponse(err);
+                setSubmitLoading(false);
+            });
+        } else if (mode === "edit") {
+            await api.patch(`/api/deck/edit-deck/${id}/`, deck).then(res => {
+                if (res.status === 200) {
+                    navigate(`/test/${id}`);
+                } else {
+                    alert("Failed to save changes");
+                }
+                setSubmitLoading(false);
+            }).catch(err => {
+                handleErrorResponse(err);
+                setSubmitLoading(false);
+            });
+        }
+    }
+
+    const submitSettings = (retentionRate, parameters) => {
+        if(validateSettings(retentionRate, parameters)) { 
+            setRetentionRate(parseFloat(retentionRate));
+            setParameters(parameters);
+            originalParameters.current = parameters;
+            originalRetentionRate.current = retentionRate;
+            setOpenSettings(false);
+            setMoreAnchorEl(null);
+            setParametersError('');
+            setRetentionRateError('');
+        }
+    }
+
+    const handleCancelSettings = () => {
+        setRetentionRate(originalRetentionRate.current);
+        setParameters(originalParameters.current);
+        setOpenSettings(false);
+        setMoreAnchorEl(null);
+        setParametersError('');
+        setRetentionRateError('');
+    }
+
+    const showDeck = () => {
+        return(
+            <div>
+                <TextField fullWidth id="title" required value={title} onChange={(e) => setTitle(e.target.value)} label="Deck title" variant="standard" error={titleErrorMessage !== ""} helperText={titleErrorMessage}/>
+                <ol className="flashcard-list">
+                    {cards.map(card => (
+                        <li key={card.clientId}>
+                            <FlashcardElement card={card} onDelete={deleteCard} onCopy={copyCard} disableDelete={cards.length === 1}/>
+                        </li>
+                    ))}
+                </ol>
+                <Button variant="contained" sx={{mb: 2}} startIcon={<Add />} onClick={addCard}>Add Flashcard</Button>
+            </div>
+        );
+    }
+
+    const showLoading = () => {
+        return (
+            <div>
+                <Skeleton variant="text" width="100%" sx={{borderRadius: 2}}></Skeleton>
+                <ol className="flashcard-list">
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <FlashcardElement card={new Flashcard()}/>
+                        </Skeleton>
+                    </li>
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <FlashcardElement card={new Flashcard()}/>
+                        </Skeleton>
+                    </li>
+                    <li>
+                        <Skeleton variant="rectangular" width="100%" sx={{borderRadius: 2}}>
+                            <FlashcardElement card={new Flashcard()}/>
+                        </Skeleton>
+                    </li>
+                    
+                </ol>
+        </div>
+        )
+    }
+
+    const showNotExist = () => {
+        return (
+            <Typography variant="h6">
+                <Box sx={{fontWeight: 'bold', marginBottom: 2, fontSize: 20, color:'rgb(102, 102, 102)'}}>
+                    Oops! Looks like this deck doesn't exist. Create a deck {" "}
+                    <Link to="/create" style={{ textDecoration: 'underline', color: "blue" }}>
+                        here
+                    </Link>
+                    .
+                </Box>
+            </Typography>
+        )
+    }
+
+    return (
+        <div>
+            <div className="page-header">
+                <Typography variant="h4" sx={{fontWeight: 'bold'}}>{mode === "create" ? "Create a new Deck" : "Edit Deck"}</Typography>
+                <Stack direction="row" spacing={2} sx={{alignItems: 'center'}}>
+                    <Button variant="outlined" loading={submitLoading} disabled={cards === null} startIcon={mode === "create" ? <Add /> : <Done />} onClick={submitDeck}>{mode === "create" ? "Create Deck" : "Save"}</Button>
+                    <Button variant="contained" loading={submitLoading} disabled={cards === null} onClick={submitAndTest}>{mode === "create" ? "Create and test" : "Save and test"}</Button>
+                    <IconButton disabled={cards === null} onClick={(e) => setMoreAnchorEl(e.currentTarget)}>
+                        <MoreVert/>
+                    </IconButton>
+                </Stack>
+                <Menu
+                    anchorEl={moreAnchorEl}
+                    open={moreAnchorEl !== null}
+                    onClose={() => setMoreAnchorEl(null)}
+                >
+                    <MenuItem onClick={() => setOpenSettings(true)}>
+                        <ListItemIcon>
+                            <Settings/>
+                        </ListItemIcon>
+                        <Typography>Deck settings</Typography>
+                    </MenuItem>
+                </Menu>
+            </div>
+            {!cards && deckDoesExist && showLoading()}
+            {!cards && !deckDoesExist && showNotExist()}
+            {cards && deckDoesExist && showDeck()}
+            
+            <Modal open={showModal}>
+                <Card sx={{display: 'flex',
+                        alignItems: 'center',
+                        flexDirection: 'column',
+                        gap:2, 
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        boxShadow: 24,
+                        p: 4,}}>
+                    <Typography sx={{textAlign: 'center'}} id="modal-modal-title" variant="h4" component="h2">Your deck is ready</Typography>
+                    <img src={tick} alt="tick" style={{width: 150}}/>
+                    <Button variant="contained" onClick={() => {setShowModal(false)}}>Continue editing</Button>
+                    <Button variant="outlined" onClick={() => navigate(`/decks`)}>View created Decks</Button>
+                </Card>
+            </Modal>
+            <Snackbar sx={{maxWidth: {xs: '100%', sm: '20%'}}} open={generalErrorMessage !== ""} anchorOrigin={{vertical: 'bottom', horizontal: 'right'}} autoHideDuration={6000} onClose={() => {setGeneralError('')}}>
+                <Alert severity="error" sx={{whiteSpace: 'pre-line'}} onClose={() => {setGeneralError('')}}>{generalErrorMessage}</Alert>
+            </Snackbar>
+            <Dialog 
+                open={openSettings}
+                onClose={() => {setOpenSettings(false); setParametersError(''); setRetentionRateError(''); setMoreAnchorEl(null);}}
+                slotProps={{
+                    paper: {
+                    component: 'form',
+                    onSubmit: (event) => {
+                        event.preventDefault();
+                        const formData = new FormData(event.currentTarget);
+                        const formJson = Object.fromEntries(formData.entries());
+                        const retentionRate = formJson['retention-rate'];
+                        const parameters = formJson['fsrs-parameters'];
+                        submitSettings(retentionRate, parameters);
+                    },
+                    },
+                }}
+            >
+                <DialogTitle>Deck Settings</DialogTitle>
+                <DialogContent sx={{display: 'flex', flexDirection: 'column'}}>
+                    <DialogContentText>
+                        Adjust FSRS parameters below. Defaults work well - modify with caution!
+                    </DialogContentText>
+                    <TextField
+                        required
+                        name="retention-rate"
+                        label="Desired Retention Rate"
+                        fullWidth
+                        variant="standard"
+                        value={retentionRate}
+                        onChange={(e) => setRetentionRate(e.target.value)}
+                        error={retentionRateError !== ""}
+                        helperText={retentionRateError}
+                    />
+                    <Button sx={{alignSelf: 'flex-end'}} onClick={() => setRetentionRate(defaultRetentionRate)}>Default</Button>
+                    <TextField
+                        required
+                        name="fsrs-parameters"
+                        label="FSRS parameters"
+                        fullWidth
+                        variant="standard"
+                        value={parameters}
+                        onChange={(e) => setParameters(e.target.value)}
+                        error={parametersError !== ""}
+                        helperText={parametersError}
+                    />
+                    <Button sx={{alignSelf: 'flex-end'}} onClick={() => setParameters(defaultParameters)}>Default</Button>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleCancelSettings()}>Cancel</Button>
+                    <Button type="submit">Submit</Button>
+                </DialogActions>
+            </Dialog>
+            
+            
+        </div>
+
+    );
+}
+
+export default CreateAndEditDeck
