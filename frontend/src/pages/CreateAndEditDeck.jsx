@@ -147,9 +147,9 @@ function CreateAndEditDeck({mode="create"}) {
             if(card.term === "") {
                 card.setTermError("Term cannot be empty");
                 isValid = false;
-            } else if (card.term.length > 70) {
+            } else if (card.term.length > 200) {
                 isValid = false;
-                card.setTermError("Term must be less than or equal to 70 characters");
+                card.setTermError("Term must be less than or equal to 200 characters");
             }
             else {
                 card.setTermError("");
@@ -158,9 +158,9 @@ function CreateAndEditDeck({mode="create"}) {
             if(card.definition === "") {
                 card.setDefinitionError("Definition cannot be empty");
                 isValid = false;
-            } else if (card.definition.length > 200) {
+            } else if (card.definition.length > 100) {
                 isValid = false;
-                card.setDefinitionError("Definition must be less than or equal to 200 characters");
+                card.setDefinitionError("Definition must be less than or equal to 100 characters");
             } else {
                 card.setDefinitionError("");
             }
@@ -205,7 +205,6 @@ function CreateAndEditDeck({mode="create"}) {
 
     const handleErrorResponse = (err) => {
         var errorMessage = "Some errors occurred whilst processing your request... ";
-        console.log(err);
         if (err.status === 400) {
             if(err.response.data.title) {
                 errorMessage += "\n\nTitle: " + err.response.data.title[0];
@@ -300,7 +299,6 @@ function CreateAndEditDeck({mode="create"}) {
             return;
         }
 
-        console.log('test');
         const request = createPayload();
         if(mode === "create") {
             await api.post("/api/deck/create-deck/", request).then(res => {

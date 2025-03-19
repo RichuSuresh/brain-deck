@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import Link from '@mui/material/Link';
@@ -106,59 +105,59 @@ function Register() {
                     sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
                 >
                     <FormControl>
-                    <FormLabel htmlFor="email">Email</FormLabel>
-                    <TextField
-                        required
-                        fullWidth
-                        id="email"
-                        placeholder="your@email.com"
-                        name="email"
-                        autoComplete="email"
-                        variant="outlined"
-                        error={emailError}
-                        helpertext={emailErrorMessage}
-                        color={passwordError ? 'error' : 'primary'}
-                    />
+                        <FormLabel htmlFor="email">Email</FormLabel>
+                        <TextField
+                            required
+                            fullWidth
+                            id="email"
+                            placeholder="your@email.com"
+                            name="email"
+                            autoComplete="email"
+                            variant="outlined"
+                            error={emailError}
+                            helpertext={emailErrorMessage}
+                            color={passwordError ? 'error' : 'primary'}
+                        />
                     </FormControl>
                     <FormControl>
-                    <FormLabel htmlFor="password">Password</FormLabel>
-                    <TextField
-                        required
-                        fullWidth
-                        name="password"
-                        placeholder="••••••"
-                        type="password"
-                        id="password"
-                        autoComplete="new-password"
-                        variant="outlined"
-                        error={passwordError}
-                        helpertext={passwordErrorMessage}
-                        color={passwordError ? 'error' : 'primary'}
-                    />
+                        <FormLabel htmlFor="password">Password</FormLabel>
+                        <TextField
+                            required
+                            fullWidth
+                            name="password"
+                            placeholder="••••••"
+                            type="password"
+                            id="password"
+                            autoComplete="new-password"
+                            variant="outlined"
+                            error={passwordError}
+                            helpertext={passwordErrorMessage}
+                            color={passwordError ? 'error' : 'primary'}
+                        />
                     </FormControl>
                     <FormControl>
-                    <FormLabel htmlFor="password">Confirm Password</FormLabel>
-                    <TextField
-                        required
-                        fullWidth
-                        name="confirm-password"
-                        placeholder="••••••"
-                        type="password"
-                        id="confirm-password"
-                        autoComplete="confirm-new-password"
-                        variant="outlined"
-                        error={confirmPasswordError}
-                        helpertext={confirmPasswordErrorMessage}
-                        color={confirmPasswordError ? 'error' : 'primary'}
-                    />
+                        <FormLabel htmlFor="password">Confirm Password</FormLabel>
+                        <TextField
+                            required
+                            fullWidth
+                            name="confirm-password"
+                            placeholder="••••••"
+                            type="password"
+                            id="confirm-password"
+                            autoComplete="confirm-new-password"
+                            variant="outlined"
+                            error={confirmPasswordError}
+                            helpertext={confirmPasswordErrorMessage}
+                            color={confirmPasswordError ? 'error' : 'primary'}
+                        />
                     </FormControl>
                     <Button
-                    type="submit"
-                    fullWidth
-                    variant="contained"
-                    onClick={validateInputs}
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        onClick={validateInputs}
                     >
-                    Sign up
+                        Sign up
                     </Button>
                 </Box>
                 <Typography sx={{ textAlign: 'center' }}>

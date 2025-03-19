@@ -83,7 +83,7 @@ function Login() {
                         <FormLabel htmlFor="email">Email</FormLabel>
                         <TextField
                             error={emailError ? emailError : undefined}
-                            helpertext={emailErrorMessage}
+                            helperText={emailErrorMessage}
                             id="email"
                             type="email"
                             name="email"
@@ -100,7 +100,7 @@ function Login() {
                         <FormLabel htmlFor="password">Password</FormLabel>
                         <TextField
                             error={passwordError ? passwordError : undefined}
-                            helpertext={passwordErrorMessage}
+                            helperText={passwordErrorMessage}
                             name="password"
                             placeholder="••••••"
                             type="password"
@@ -120,15 +120,6 @@ function Login() {
                         >
                         Sign in
                     </Button>
-                    <Link
-                        component="button"
-                        type="button"
-                        // onClick={handleClickOpen}
-                        variant="body2"
-                        sx={{ alignSelf: 'center' }}
-                        >
-                        Forgot your password?
-                    </Link>
                 </Box>
                 <Divider>or</Divider>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
