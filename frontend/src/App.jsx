@@ -10,6 +10,8 @@ import CreateAndEditDeck from "./pages/CreateAndEditDeck"
 import Layout from "./components/Layout"
 import Decks from "./pages/Decks"
 import TestDeck from "./pages/TestDeck"
+import Settingslayout from "./components/SettingsLayout"
+import GeneralSettings from "./pages/GeneralSettings"
 
 function Logout() {
   return <Navigate to="/login" />
@@ -29,6 +31,10 @@ function App() {
             <Route path="/create" element={<CreateAndEditDeck mode="create"/>} />
             <Route path="/decks" element={<Decks />} />
             <Route path="/edit-deck/:id" element={<CreateAndEditDeck mode="edit"/>} />
+          </Route>
+          <Route element={<ProtectedRoute><Settingslayout/></ProtectedRoute>}>
+            <Route path="/settings" element={<GeneralSettings />} />
+            <Route path="/settings/general" element={<GeneralSettings />} />
           </Route>
           <Route path="/test/:id" element={<ProtectedRoute><TestDeck mode="test"/></ProtectedRoute>} />
           <Route path="/review/:id" element={<ProtectedRoute><TestDeck mode="review"/></ProtectedRoute>} />

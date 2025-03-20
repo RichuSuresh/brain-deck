@@ -2,17 +2,13 @@ import React from "react";
 import { useState} from "react";
 import { Button, Toolbar, AppBar, Typography, Box, IconButton, Avatar, Tooltip, Menu, MenuItem, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText } from "@mui/material";
 import { doSignOut } from "../../auth";
-import { LibraryAdd, Home, AutoAwesomeMotion, Menu as MenuIcon } from "@mui/icons-material";
+import { LibraryAdd, Home, AutoAwesomeMotion, Settings, Menu as MenuIcon } from "@mui/icons-material";
 import "../styles/Layout.css";
 import { Outlet, Link } from "react-router-dom";
 
-export default function Layout() {
+export default function Settingslayout() {
     const [anchorElUser, setAnchorElUser] = useState(null);
     const [mobileOpen, setMobileOpen] = useState(false);
-
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
     
     const handleOpenUserMenu = (event) => {
         setAnchorElUser(event.currentTarget);
@@ -32,20 +28,12 @@ export default function Layout() {
                             <ListItemText primary="Home" />
                         </ListItemButton>
                     </ListItem>
-                    <ListItem key="my-flashcards" disablePadding>
-                        <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/create">
+                    <ListItem key="general" disablePadding>
+                        <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/settings/general">
                             <ListItemIcon>
-                                <LibraryAdd />
+                                <Settings />
                             </ListItemIcon>
-                            <ListItemText primary="Create a new deck" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem key="edit-my-flashcards" disablePadding>
-                        <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/decks">
-                            <ListItemIcon>
-                                <AutoAwesomeMotion />
-                            </ListItemIcon>
-                            <ListItemText primary="My decks" />
+                            <ListItemText primary="General" />
                         </ListItemButton>
                     </ListItem>
                 </List>
@@ -78,7 +66,6 @@ export default function Layout() {
                             anchorEl={anchorElUser}
                             onClose={() => setAnchorElUser(null)}
                         >
-                            <MenuItem component={Link} to="/settings/general">Settings</MenuItem>
                             <MenuItem onClick={doSignOut}>Logout</MenuItem>
                         </Menu>
                     </Box>

@@ -15,6 +15,30 @@ cred = credentials.Certificate("credentials.json")
 initialize_app(cred)
 db = firestore.client()
 
+@api_view(['DELETE'])
+def deleteUser(request):
+    auth_header = request.headers['Authorization']
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return Response({'error': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    token = auth_header.split(' ')[1]
+    try:
+        decoded_token = auth.verify_id_token(token)
+        uid = decoded_token['uid']
+        try:
+            auth.delete_user(uid)
+            
+            user_ref = db.collection('users').document(uid)
+            if(user_ref.get().exists):
+                user_ref.delete()
+
+            return Response({'message': 'User deleted successfully.'}, status=status.HTTP_200_OK)
+        except:
+            return Response({'message': 'User could not be deleted, please login again.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    except auth.InvalidIdTokenError:
+        return Response({'error': 'Invalid token.'}, status=status.HTTP_401_UNAUTHORIZED)
+
 @api_view(['POST'])
 def createDeck(request):
     auth_header = request.headers['Authorization']
@@ -295,6 +319,8 @@ def generateDeck(request):
         
         validData = serializer.validated_data
         deck = generateFlashcardDeck(validData['files'])
+        if('title' not in deck or 'flashcards' not in deck):
+            return Response({'message': 'Deck could not be generated.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response(deck, status=status.HTTP_201_CREATED)
         
     except auth.InvalidIdTokenError:
