@@ -147,7 +147,7 @@ function CreateAndEditDeck({mode="create"}) {
             if(card.term === "") {
                 card.setTermError("Term cannot be empty");
                 isValid = false;
-            } else if (card.term.length > 200) {
+            } else if (card.term.length > 100) {
                 isValid = false;
                 card.setTermError("Term must be less than or equal to 200 characters");
             }
@@ -158,7 +158,7 @@ function CreateAndEditDeck({mode="create"}) {
             if(card.definition === "") {
                 card.setDefinitionError("Definition cannot be empty");
                 isValid = false;
-            } else if (card.definition.length > 100) {
+            } else if (card.definition.length > 200) {
                 isValid = false;
                 card.setDefinitionError("Definition must be less than or equal to 100 characters");
             } else {

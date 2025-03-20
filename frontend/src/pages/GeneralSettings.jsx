@@ -2,7 +2,7 @@ import { Alert, Box, Button, Card, Dialog, DialogActions, DialogContent, DialogC
 import { useState } from "react";
 import { useAuth } from "../components/AuthProvider";
 import Checkbox from '@mui/material/Checkbox';
-import { doDeleteUser, doSignOut, generateFirebaseAuthErrorMessage } from "../../auth";
+import { doSignOut } from "../../auth";
 import api from "../api";
 import { useNavigate } from "react-router-dom";
 
