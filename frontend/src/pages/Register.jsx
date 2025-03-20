@@ -115,7 +115,7 @@ function Register() {
                             autoComplete="email"
                             variant="outlined"
                             error={emailError}
-                            helpertext={emailErrorMessage}
+                            helperText={emailErrorMessage}
                             color={passwordError ? 'error' : 'primary'}
                         />
                     </FormControl>
@@ -131,7 +131,7 @@ function Register() {
                             autoComplete="new-password"
                             variant="outlined"
                             error={passwordError}
-                            helpertext={passwordErrorMessage}
+                            helperText={passwordErrorMessage}
                             color={passwordError ? 'error' : 'primary'}
                         />
                     </FormControl>
@@ -147,7 +147,7 @@ function Register() {
                             autoComplete="confirm-new-password"
                             variant="outlined"
                             error={confirmPasswordError}
-                            helpertext={confirmPasswordErrorMessage}
+                            helperText={confirmPasswordErrorMessage}
                             color={confirmPasswordError ? 'error' : 'primary'}
                         />
                     </FormControl>
