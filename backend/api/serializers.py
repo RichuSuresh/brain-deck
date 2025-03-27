@@ -28,7 +28,7 @@ class DeckUpdateSerializer(serializers.Serializer):
     retentionRate = serializers.FloatField(required=False)
 
 class FileSerializer(serializers.Serializer):
-    files = serializers.ListField(child=serializers.FileField(), allow_empty=False)
+    files = serializers.ListField(child=serializers.FileField(), allow_empty=False, max_length=2)
 
 
 

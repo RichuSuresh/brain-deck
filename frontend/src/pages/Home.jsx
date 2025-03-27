@@ -41,6 +41,7 @@ function Home() {
     let acceptedFileTypes = {
         "application/pdf": [".pdf"],
     }
+    const maxFiles = 2;
 
     useEffect(() => {
         getDecksToReview()
@@ -67,6 +68,10 @@ function Home() {
     }
 
     const addFile = (newFiles, fileRejections) => {
+        if(files.length + newFiles.length > maxFiles){
+            setErrorMessage(`You can only upload ${maxFiles} files at a time, please remove one or more files before adding more`);
+            return;
+        }
         if(files.some(f => f.name === newFiles.name)){
             setErrorMessage(`A file with the name ${newFiles.name} already exists`);
             return;

@@ -325,3 +325,5 @@ def generateDeck(request):
         
     except auth.InvalidIdTokenError:
         return Response({'message': 'Invalid authentication token.'}, status=status.HTTP_401_UNAUTHORIZED)
+    except ConnectionError:
+        return Response({'message': 'Could not connect to Ollama API'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

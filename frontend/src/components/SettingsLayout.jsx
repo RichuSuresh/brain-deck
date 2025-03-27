@@ -25,7 +25,7 @@ export default function Settingslayout() {
                             <ListItemIcon>
                                 <Home />
                             </ListItemIcon>
-                            <ListItemText primary="Home" />
+                            <ListItemText primary="Back home" />
                         </ListItemButton>
                     </ListItem>
                     <ListItem key="general" disablePadding>

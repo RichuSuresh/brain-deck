@@ -17,6 +17,7 @@ from langchain.chains.combine_documents.reduce import (
     acollapse_docs,
     split_list_of_docs,
 )
+import requests
 
 map_template = """
 Context:
@@ -55,7 +56,7 @@ Text: {context}."""
 
 reduce_template = """
 Context:
-You will be given a collection of flashcards and your goal is to compile them into a single deck.
+You will be given a collection of flashcards and your goal is to compile them into a single deck. DO NOT USE UNICODE CHARACTERS.
 
 Each flashcard must have a term that is a question and a definition that answers the question.
 Flashcards must be distinct from one another. There must be no repeated terms or definitions.
@@ -78,29 +79,44 @@ Flashcards:
 
 """
 
+collapse_template = """
+Context:
+Given the following flashcards, keep the most important flashcards. Summarise any redundant flashcard into a single card.
+
+**Flashcards cannot have the same term or definition**.
+Each flashcard must have a term that is a question and a definition that answers the question.
+Flashcards must be distinct from one another. There must be no repeated terms or definitions.
+
+You must only output JSON in the following format:
+{{
+    "flashcards": [
+        {{"term": "", "definition": ""}}
+    ]
+}}
+
+Flashcards:
+{docs}
+
+"""
+
 map_prompt = ChatPromptTemplate([("human", map_template)])
 reduce_prompt = ChatPromptTemplate([("human", reduce_template)])
+collapse_prompt = ChatPromptTemplate([("human", collapse_template)])
 
 llm = ChatOllama(
     base_url="http://localhost:11434",
-    model="mistral",
+    model="gemma3:4b",
+    num_ctx=8192,
+    temperature=0,
     format="json",
-    num_ctx=8192,
-    temperature=0,
+    keep_alive=-1,
 )
 
-map_llm = ChatOllama(
-    base_url="http://localhost:11434",
-    model="llama3.2",
-    num_ctx=8192,
-    temperature=0,
-    format="json"
-)
-
-map_chain = map_prompt | map_llm | StrOutputParser()
+map_chain = map_prompt | llm | StrOutputParser()
 reduce_chain = reduce_prompt | llm | StrOutputParser()
+collapse_chain = collapse_prompt | llm | StrOutputParser()
 
-token_max = 5000
+token_max = 6000
 
 def length_function(documents: List[Document]) -> int:
     """Get number of tokens for input contents."""
@@ -141,8 +157,9 @@ async def collapse_flashcards(state: OverallState):
 
     print(f"split_list_of_docs produced {len(doc_lists)} batches")
 
-    tasks = [asyncio.create_task(acollapse_docs(doc_list, reduce_chain.ainvoke)) for doc_list in doc_lists]
-    results = await asyncio.gather(*tasks)
+    results = []
+    for doc_list in doc_lists:
+        results.append(await acollapse_docs(doc_list, collapse_chain.ainvoke))
 
     return {"collapsed_flashcards": results}
 
@@ -151,8 +168,10 @@ def should_collapse(
 ) -> Literal["collapse_flashcards", "generate_flashcard_deck"]:
     num_tokens = length_function(state["collapsed_flashcards"])
     if num_tokens > token_max:
+        print("should collapse")
         return "collapse_flashcards"
     else:
+        print("should not collapse")
         return "generate_flashcard_deck"
 
 async def generate_flashcard_deck(state: OverallState):
@@ -176,10 +195,19 @@ app = graph.compile()
 
 async def get_flashcard_deck(documents):
     result = await app.ainvoke({"contents": [doc.page_content for doc in documents]})
-    return json.loads(result['flashcard_deck'].replace("\\'", "'"))
+    return json.loads(result['flashcard_deck'])
 
+def checkOllama():
+    try:
+        response = requests.get("http://localhost:11434")
+        if response.status_code != 200:
+            raise ConnectionError("Ollama server is unreachable.")
+    except requests.exceptions.RequestException:
+        raise ConnectionError("Ollama server is unreachable.")
+    
 def generateFlashcardDeck(files):
     
+    checkOllama()
     loaderDict = {
         "application/pdf": PyPDFLoader
 
