@@ -60,14 +60,14 @@ function TestDeck({mode}) {
 
     const getDeck = async (mode) => {
         setIsLoading(true)
-        let baseUrl = '/api/deck'
+        let url;
         if(mode === "test") {
-            baseUrl = `${baseUrl}/get-deck/${id}/`
+            url = `/api/deck/get-deck/${id}/`
         } else if (mode === "review") {
-            baseUrl = `${baseUrl}/get-deck-for-review/${id}/`
+            url = `/api/deck/get-deck-for-review/${id}/`
         }
         const res = await api
-        .get(baseUrl)
+        .get(url)
         .then(res => res.data)
         .then(data => {
             setCards(data.flashcards)
@@ -208,7 +208,7 @@ function TestDeck({mode}) {
             {!testFinished &&
                 <> 
                     <Stack className="header" direction="row"  spacing={2}>
-                        <IconButton onClick={() => {setEndTest(true)}}sx={{width: 50, height: 50}}>
+                        <IconButton id="exit" aria-label="exit" onClick={() => {setEndTest(true)}}sx={{width: 50, height: 50}}>
                             <Close sx={{ width: '100%', height: '100%' }}/>
                         </IconButton>
                     </Stack>
@@ -224,7 +224,7 @@ function TestDeck({mode}) {
                                             {currentCardIndex < cards.length ? cards[currentCardIndex].term : ""}
                                         </Typography>
                                     </Box>
-                                    <IconButton onClick={() => {setIsFlipped(!isFlipped)}}sx={{ width: 70, height: 70}}>
+                                    <IconButton id="flip-to-definition" aria-label="flip-to-definition" onClick={() => {setIsFlipped(!isFlipped)}}sx={{ width: 70, height: 70}}>
                                         <SyncAlt sx={{ width: '100%', height: '100%' }}/>
                                     </IconButton>
                                 </Card>
@@ -256,7 +256,7 @@ function TestDeck({mode}) {
                                             </FormControl>
                                         </form>
                                     }
-                                    <IconButton onClick={() => {setIsFlipped(!isFlipped)}} sx={{ width: 70, height: 70}}>
+                                    <IconButton id="flip-to-term" aria-label="flip-to-term" onClick={() => {setIsFlipped(!isFlipped)}} sx={{ width: 70, height: 70}}>
                                         <SyncAlt sx={{ width: '100%', height: '100%' }}/>
                                     </IconButton>
                                 </Card>
@@ -305,7 +305,7 @@ function TestDeck({mode}) {
                     <Typography id="modal-modal-title" variant="h6" component="h2">{`Only ${cards.length - currentCardIndex} more card${cards.length - currentCardIndex === 1 ? '' : 's'} left, you can do it!`}</Typography>
                     <Box sx={{display: 'flex', gap: 2}}>
                         <Button variant="contained" onClick={() => {setEndTest(false)}}>keep going</Button>
-                        <Button variant="outlined" color="error" onClick={() => handleEndTest()}>End Test</Button>
+                        <Button variant="outlined" color="error" onClick={() => handleEndTest()}>End {mode}</Button>
                     </Box>
                 </Card>
             </Modal>

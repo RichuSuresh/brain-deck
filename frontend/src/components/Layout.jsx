@@ -32,7 +32,7 @@ export default function Layout() {
                             <ListItemText primary="Home" />
                         </ListItemButton>
                     </ListItem>
-                    <ListItem key="my-flashcards" disablePadding>
+                    <ListItem key="create-deck" disablePadding>
                         <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/create">
                             <ListItemIcon>
                                 <LibraryAdd />
@@ -40,7 +40,7 @@ export default function Layout() {
                             <ListItemText primary="Create a new deck" />
                         </ListItemButton>
                     </ListItem>
-                    <ListItem key="edit-my-flashcards" disablePadding>
+                    <ListItem key="my-decks" disablePadding>
                         <ListItemButton onClick={() => setMobileOpen(false)} component={Link} to="/decks">
                             <ListItemIcon>
                                 <AutoAwesomeMotion />

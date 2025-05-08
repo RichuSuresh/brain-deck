@@ -86,7 +86,8 @@ function CreateAndEditDeck({mode="create"}) {
 
     const copyCard = (id) => {
         const card = cards.find(card => card.clientId === id)
-        setCards([...cards, new Flashcard(undefined, undefined, card.term, card.definition)])
+        setCards([...cards, 
+            new Flashcard(undefined, undefined, card.term, card.definition)])
     }
 
     const addCard = () => {
@@ -134,11 +135,11 @@ function CreateAndEditDeck({mode="create"}) {
             setGeneralError("");
         }
         if(title === "") {
-            setTitleError("Title cannot be empty and must be less than or equal to 50 characters");
+            setTitleError("Title cannot be empty and must be less than or equal to 70 characters");
             isValid = false;
         } else if (title.length > 70) {
             isValid = false;
-            setTitleError("Title must be less than or equal to 50 characters");
+            setTitleError("Title must be less than or equal to 70 characters");
         } else {
             setTitleError("");
         }
@@ -149,7 +150,7 @@ function CreateAndEditDeck({mode="create"}) {
                 isValid = false;
             } else if (card.term.length > 100) {
                 isValid = false;
-                card.setTermError("Term must be less than or equal to 200 characters");
+                card.setTermError("Term must be less than or equal to 100 characters");
             }
             else {
                 card.setTermError("");
@@ -160,7 +161,7 @@ function CreateAndEditDeck({mode="create"}) {
                 isValid = false;
             } else if (card.definition.length > 200) {
                 isValid = false;
-                card.setDefinitionError("Definition must be less than or equal to 100 characters");
+                card.setDefinitionError("Definition must be less than or equal to 200 characters");
             } else {
                 card.setDefinitionError("");
             }
@@ -183,7 +184,6 @@ function CreateAndEditDeck({mode="create"}) {
             settingsValid = false;
         } else {
             setRetentionRateError('');
-            setRetentionRate(retentionRate);
         }
 
         const isValidParameterRegex = /^-?\d+(\.\d+)?$/

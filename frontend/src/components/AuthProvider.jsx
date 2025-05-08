@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     if (loading) {
-        return <div>Loading...</div>; // Optional: Add a loading spinner here
+        return <div>Loading...</div>;
     }
 
     return (

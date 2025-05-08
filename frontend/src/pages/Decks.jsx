@@ -116,7 +116,14 @@ function Decks() {
                     <ul className="flashcard-list">
                         {filteredDecks.map(deck => (
                             <li key={deck.id}>
-                                <DeckCard id={deck.id} title={deck.title} numOfCards={deck.numberOfCards} numOfCardsToReview={deck.numberOfCardsToReview} onTest={testDeck} onReview={reviewDeck} onEdit={editDeck} onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
+                                <DeckCard 
+                                    id={deck.id} 
+                                    title={deck.title} 
+                                    numOfCards={deck.numberOfCards} 
+                                    numOfCardsToReview={deck.numberOfCardsToReview} 
+                                    onTest={testDeck} onReview={reviewDeck} 
+                                    onEdit={editDeck} 
+                                    onDelete={(id, title, numOfCards) => {setConfirmDelete(true); setSelectedDeck({id, title, numOfCards})}} />
                             </li>
                         ))}
                     </ul>

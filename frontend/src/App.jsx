@@ -13,14 +13,6 @@ import TestDeck from "./pages/TestDeck"
 import Settingslayout from "./components/SettingsLayout"
 import GeneralSettings from "./pages/GeneralSettings"
 
-function Logout() {
-  return <Navigate to="/login" />
-}
-
-function ResgisterAndLogout() {
-  return <Register />
-}
-
 function App() {
   return (
     <AuthProvider>
@@ -38,9 +30,8 @@ function App() {
           </Route>
           <Route path="/test/:id" element={<ProtectedRoute><TestDeck mode="test"/></ProtectedRoute>} />
           <Route path="/review/:id" element={<ProtectedRoute><TestDeck mode="review"/></ProtectedRoute>} />
-          <Route path="/logout" element={<Logout />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<ResgisterAndLogout />} />
+          <Route path="/register" element={<Register />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

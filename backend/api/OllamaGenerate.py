@@ -148,9 +148,6 @@ def collect_flashcards(state: OverallState):
 # Add node to collapse summaries
 async def collapse_flashcards(state: OverallState):
 
-    # Force smaller chunks before splitting
-    # state["collapsed_flashcards"] = hard_split_documents(state["collapsed_flashcards"], token_max)
-
     doc_lists = split_list_of_docs(
         state["collapsed_flashcards"], length_function, token_max
     )

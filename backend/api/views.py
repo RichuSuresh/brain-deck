@@ -63,11 +63,16 @@ def createDeck(request):
         if "retentionRate" not in validData:
             validData['retentionRate'] = getDefaultRetentionRate()
 
-        batch.set(deck, {'title': validData['title'], 'numberOfCards': len(validData['flashcards']), 'parameters': validData['parameters'], 'retentionRate': validData['retentionRate']})
+        batch.set(deck, {'title': validData['title'], 
+                         'numberOfCards': len(validData['flashcards']), 
+                         'parameters': validData['parameters'], 
+                         'retentionRate': validData['retentionRate']})
 
         flashcards_ref = deck.collection('flashcards')
         for flashcard in validData['flashcards']:
-            batch.set(flashcards_ref.document(), {'term': flashcard['term'], 'definition': flashcard['definition'], 'nextInterval': None})
+            batch.set(flashcards_ref.document(), {'term': flashcard['term'], 
+                                                  'definition': flashcard['definition'], 
+                                                  'nextInterval': None})
 
         batch.commit()
         return Response({'message': 'Data received successfully', 'data': {'deckId': deck.id}}, status=status.HTTP_200_OK)

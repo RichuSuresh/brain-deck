@@ -21,8 +21,6 @@ export const doSignOut = async () => {
 
 export const generateFirebaseAuthErrorMessage = (error) => {
     switch (error.code) {
-        case "auth/email-already-exists":
-            return {message: "A user with this email already exists.", field: "email"}
         case "auth/invalid-credential":
             return {message: "Incorrect email or password", field: "email"}
         case "auth/invalid-email":
@@ -31,7 +29,7 @@ export const generateFirebaseAuthErrorMessage = (error) => {
             return {message: "Please enter a valid password", field: "password"}
         case "auth/missing-password":
             return {message: "Please enter a valid password", field: "password"}
-        case "auth/weak-password":
+        case "auth/password-does-not-meet-requirements":
             return {message: "Please enter a password that is at least 6 characters long", field: "password"}
         default:
             return {message: "Something went wrong, please try again", field: "email"}
