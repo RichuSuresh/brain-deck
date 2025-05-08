@@ -2,6 +2,7 @@
 A web app for creating flashcards or generating them using AI
 
 # Installation
+For development and testing, use the development branch: ```git clone git@github.com:RichuSuresh/brain-deck.git``` and then ```git checkout development```
 ## Backend
 1. ```cd /backend```
 2. (optional) install a python virtual environment: ```python -m venv env``` and activate it by doing ```cd env```, then ```cd Scripts``` then ```activate```
@@ -54,6 +55,7 @@ A web app for creating flashcards or generating them using AI
 1. On docker desktop, click on the Containers tab
 
 3. Click Start
+
 ![image](https://github.com/user-attachments/assets/6b9e7818-7ba4-4549-a246-23a5fdee69ec)
 
 
