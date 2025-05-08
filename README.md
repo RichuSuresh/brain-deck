@@ -30,7 +30,7 @@ For development and testing, use the development branch: ```git clone git@github
 
 12. On the popup, click optional settings
     
-14. Set the container name to ollama and the Host port to 11434 and the
+14. Set the container name to ollama and the Host port to 11434
 ![image](https://github.com/user-attachments/assets/74fc4ab3-cf16-4a58-ab80-19249fa62124)
 
 15. On the container menu, click the exec tab
