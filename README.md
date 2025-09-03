@@ -1,5 +1,5 @@
 # Brain Deck
-A web app for creating flashcards or generating them using AI
+A web app for creating flashcards or generating them using AI. Made using React and Django, with firebase as the datastore
 
 # Installation
 For development and testing, use the development branch: ```git clone git@github.com:RichuSuresh/brain-deck.git``` and then ```git checkout development```
