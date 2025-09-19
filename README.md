@@ -24,6 +24,8 @@ For development and testing, use the development branch: ```git clone git@github
 ![image](https://github.com/user-attachments/assets/42218a00-cba2-4732-907f-4579f35d68a0)
 
 8. Once the image has been pulled, click on the "images" tab on the left
+
+8.5 (optional). To use GPU passthrough, open the terminal in docker desktop (bottom right corner) and use the following command docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
    
 10. Click the play button
 ![image](https://github.com/user-attachments/assets/b2c743c6-30a7-468d-b2da-dda474cf90c2)
