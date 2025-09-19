@@ -15,30 +15,32 @@ For development and testing, use the development branch: ```git clone git@github
 ## Ollama docker container
 1. Download docker desktop https://www.docker.com/products/docker-desktop/
    
-3. On docker desktop, go to Docker Hub and search for "ollama"
+2. On docker desktop, go to Docker Hub and search for "ollama"
 ![image](https://github.com/user-attachments/assets/63957d48-4803-441f-b5f1-c05062f73114)
 
-4. Click on "ollama/ollama"
+3. Click on "ollama/ollama"
    
-6. Click "pull"
+4. Click "pull"
 ![image](https://github.com/user-attachments/assets/42218a00-cba2-4732-907f-4579f35d68a0)
 
-8. Once the image has been pulled, click on the "images" tab on the left
+5. Once the image has been pulled, click on the "images" tab on the left
 
-8.5 (optional). To use GPU passthrough, open the terminal in docker desktop (bottom right corner) and use the following command docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama
+5.5 (optional). To use GPU passthrough, open the terminal in docker desktop (bottom right corner) and use the following command and skip steps 6, 7 and 8:
+
+```docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama```
    
-10. Click the play button
+6. Click the play button
 ![image](https://github.com/user-attachments/assets/b2c743c6-30a7-468d-b2da-dda474cf90c2)
 
-12. On the popup, click optional settings
+7. On the popup, click optional settings
     
-14. Set the container name to ollama and the Host port to 11434
+8. Set the container name to ollama and the Host port to 11434
 ![image](https://github.com/user-attachments/assets/74fc4ab3-cf16-4a58-ab80-19249fa62124)
 
-15. On the container menu, click the exec tab
+9. On the container menu, click the exec tab
 ![image](https://github.com/user-attachments/assets/9d755b59-1421-4d20-b34c-b861460f12ee)
 
-16. In the console type ```ollama pull gemma3:4b``` to install the 4 billion parameter Gemma model
+10. In the console type ```ollama pull gemma3:4b``` to install the 4 billion parameter Gemma model
 
 # Starting development mode
 ## Backend
